@@ -1,0 +1,34 @@
+<tr class="form-field term-parent-wrap">
+    <th scope="row"><label for="autoplay">{{ __( 'Autoplay', 'awesome-framework' )}}</label></th>
+    <td>
+        <input type="checkbox" name="placement_meta[autoplay]" id="autoplay" class="autoplay" value="1" {{ autoplay ? 'checked=checked': '' }}>
+        <p>
+            {{ __('Check to have slide automatically scroll.', 'awesome-framework') }}
+        </p>
+    </td>
+</tr>
+
+<tr class="form-field term-parent-wrap">
+    <th scope="row"><label for="autoplaySpeed">{{ __( 'Autoplay Speed', 'awesome-framework' )}}</label></th>
+    <td>
+        <input type="number" step="100" name="placement_meta[autoplaySpeed]" id="autoplaySpeed" class="autoplaySpeed" value="{{ autoplaySpeed }}">
+        <p>
+            {{ __('Enter value in milliseconds. Default 3200 milliseconds (3.2 seconds)', 'awesome-framework') }}
+        </p>
+    </td>
+</tr>
+<tr class="form-field term-parent-wrap">
+    <th scope="row"><label for="heght">{{ __( 'Slider Height', 'awesome-framework' )}}</label></th>
+    <td>
+        <input type="number" step="10" name="placement_meta[height]" id="height" class="height" value="{{ height }}">
+        <p>
+            {{ __('Enter value in pixels. Defaults to 600px', 'awesome-framework') }}
+        </p>
+    </td>
+</tr>
+<tr class="form-field term-parent-wrap">
+    <th scope="row"><label for="arrows">{{ __( 'Show Arrows', 'awesome-framework' )}}</label></th>
+    <td>
+        <input type="checkbox" name="placement_meta[arrows]" id="arrows" class="arrows" value="1" {{ arrows ? 'checked=checked': '' }}>
+    </td>
+</tr>

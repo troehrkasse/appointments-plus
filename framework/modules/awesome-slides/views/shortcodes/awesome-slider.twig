@@ -1,0 +1,29 @@
+{% if slider %}
+    <style>
+        @media screen and (max-height: 540px){
+            .awesome-slider{
+                height: {{slider.height ? (slider.height/2)~'px' : 'auto' }};
+            }
+        }
+
+        .awesome-slider{
+            height: {{slider.height ? slider.height~'px' : 'auto' }};
+            overflow: hidden;
+        }
+    </style>
+    <section class="awesome-slider">
+        <div>
+            {% for slide in slider.slides %}
+                <div class="slide-wrapper">
+                    <div class="slide" style="{{ slide._awesome_slide_details_background_color ? ('background-color:' ~ slide._awesome_slide_details_background_color ~ ';') : '' }}">
+                        {% if slide.thumbnail %}
+                            <div class="image-wrapper">
+                                <img class="img-fluid" src="{{ slide.thumbnail.src }}" />
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}

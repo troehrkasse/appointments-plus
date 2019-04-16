@@ -1,0 +1,28 @@
+<div class="section reflex-advertisers-wrapper">
+	{% if awesome_reviews.advertisers.intro%}
+	<header class="intro">
+		<h2 class="title title-decorated">
+			<span class="wrapper">
+				<i class="ri ri-trophy"></i> {{awesome_reviews.advertisers.intro.title|AR_FILTER_TO_HTML}}
+			</span>
+		</h2>
+		<p class="content">{{awesome_reviews.advertisers.intro.content}}</p>
+	</header><!-- END .intro -->
+	{%endif%}
+	
+    <div class="reflex-advertisers reflex-advertisers-home">
+    	<div class="advertisers-rail-slides-loader advertiser-wrapper" data-script="{{awesome_reviews.module.slides.url}}/assets/js/sponsors.js" data-qty="{{qty}}" data-remote="{{function('admin_url', 'admin-ajax.php')}}"></div>
+		{% if awesome_reviews.advertisers.ads %}
+    		{% for i in 0..(qty-1) %}
+    		
+    		{% set ad = awesome_reviews.advertisers.ads[i+offset] %}
+    	
+    		<div class="{{ad.classes}}">
+    			{{ad.post_excerpt}}
+    		</div>
+    		{% endfor %}
+    	{% else %} 
+		
+		{% endif %}
+	</div><!-- END . reflex-sponsors -->
+</div><!-- END .wrapper -->

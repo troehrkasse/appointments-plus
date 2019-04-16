@@ -1,0 +1,60 @@
+{
+	"name": "self-transformations/awesome-transformations",
+	"description": "Custom WordPress/Woocommerce plugin",
+	"keywords": [
+		"wordpress",
+		"plugin",
+		"woocommerce",
+		"self-transformations"
+	],
+	"homepage": "https://www.self-transformations.com",
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://wpackagist.org"
+		}
+	],
+	"authors": [
+		{
+			"name": "Self Transformations",
+			"email": "info@self-transformations.com",
+			"homepage": "https://self-transformations.com"
+		}
+	],
+	"type": "wordpress-plugin",
+	"minimum-stability": "RC",
+	"require": {
+		"php": ">=5.5.2",
+		"composer/installers": ">=v1.0.6",
+		"mobiledetect/mobiledetectlib": "^2.8",
+		"google/apiclient": ">=1.0.0",
+		"twig/extensions": "^1.4",
+		"giggsey/libphonenumber-for-php": "~7.0",
+		"tedivm/stash": "^0.14.1",
+		"erusev/parsedown": "^1.6",
+
+
+		"wpackagist-plugin/timber-library": "^1.6",
+		"wpackagist-plugin/cmb2": "^2.3"
+	},
+	"config": {
+		"vendor-dir": "framework/vendor"
+	},
+	"extra": {
+		"installer-paths": {
+			"framework/vendor/{$name}/": [
+				"type:wordpress-plugin",
+				"type:wordpress-theme"
+			]
+		}
+	},
+	"autoload": {
+		"psr-0": {
+			"Acme": "src/"
+		},
+		"files": [
+			"framework/vendor/cmb2/init.php",
+			"framework/vendor/timber-library/timber.php"
+		]
+	}
+}
