@@ -1,6 +1,6 @@
 <?php
 
-function awesome_transformations_beautify($string, $remove_also=array() ){
+function appointments_plus_beautify($string, $remove_also=array() ){
 	$string = ucwords( str_replace( '_', ' ', str_replace('-', ' ',$string) ) );
 	
 	if(empty($remove_also))
@@ -13,7 +13,7 @@ function awesome_transformations_beautify($string, $remove_also=array() ){
 	return $string;
 }
 
-function awesome_transformations_sanitize_input_KSES($string){
+function appointments_plus_sanitize_input_KSES($string){
 	global $allowedposttags;
 	$allowed_atts = array('href' => array(),'title' => array(),'type' => array(),'id' => array(),'class' =>array(), 'rel'=>array(), 'style'=>array(), 'src'=>array());
 	$allowedposttags['strong'] = $allowed_atts;

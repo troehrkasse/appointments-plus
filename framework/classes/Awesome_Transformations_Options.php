@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) )  exit; //exit if access directly
 
-class AWESOME_TRANSFORMATIONS_Options{
+class APPOINTMENTS_PLUS_Options{
     private $_options=array();
     
     /**
@@ -53,7 +53,7 @@ class AWESOME_TRANSFORMATIONS_Options{
 	        if(!isset($section['id'])) continue;
 	        
 	        if(!isset($section['panel'] ))
-	        	$section['panel'] = 'awesome_transformations_panel_options';
+	        	$section['panel'] = 'appointments_plus_panel_options';
 	        
 	        $wp_customize->add_section( $section['id'], $section );
 	    }
@@ -90,7 +90,7 @@ class AWESOME_TRANSFORMATIONS_Options{
     protected function get_panels():Array{
 	    return [
 	        [
-	            'id'            =>  'awesome_transformations_panel_options',
+	            'id'            =>  'appointments_plus_panel_options',
 	            'title'         => 'Site Options',
                 'description'   =>  'Site Customization Options'        
 	        ]
@@ -100,28 +100,28 @@ class AWESOME_TRANSFORMATIONS_Options{
 	protected function get_sections():Array{
 	    return [
 	        [
-	            'id'            =>  'awesome_transformations_section_general',
+	            'id'            =>  'appointments_plus_section_general',
 	            'title'         => 'General',
                 'description'   =>  'General Settings',
-                'panel'         =>  'awesome_transformations_panel_options'
+                'panel'         =>  'appointments_plus_panel_options'
 	        ],
 	        [
-	            'id'            =>  'awesome_transformations_section_modules',
+	            'id'            =>  'appointments_plus_section_modules',
 	            'title'         => 'Modules',
                 'description'   =>  'Enable or Disable modules',
-                'panel'         =>  'awesome_transformations_panel_options'
+                'panel'         =>  'appointments_plus_panel_options'
 	        ],
 	        [
-	            'id'            =>  'awesome_transformations_section_apis',
+	            'id'            =>  'appointments_plus_section_apis',
 	            'title'         => 'APIs',
                 'description'   =>  'API access (i.e, facebook, google, strip, etc)',
-                'panel'         =>  'awesome_transformations_panel_options'
+                'panel'         =>  'appointments_plus_panel_options'
 	        ],
             [
-                'id'            =>  'awesome_transformations_section_support',
+                'id'            =>  'appointments_plus_section_support',
                 'title'         =>  'Support Contacts',
                 'description'   =>  'Contact information for client support staff',
-                'panel'         =>  'awesome_transformations_panel_options'
+                'panel'         =>  'appointments_plus_panel_options'
             ]
 	    ];
 	}
@@ -129,43 +129,43 @@ class AWESOME_TRANSFORMATIONS_Options{
 	protected function get_settings():Array{
 	    return [
 	        [
-	            'id'        =>  'awesome_transformations_settings[modules]',
+	            'id'        =>  'appointments_plus_settings[modules]',
 	            'default'   => __( '', 'csip' ),
                 'type'      =>  'option',
 	        ],
 	        [
-	            'id'        =>  'awesome_transformations_settings[api][facebook][app_key]',
+	            'id'        =>  'appointments_plus_settings[api][facebook][app_key]',
                 'type'      =>  'option',
 	        ],
 	        [
-	            'id'        =>  'awesome_transformations_settings[api][facebook][app_secret]',
+	            'id'        =>  'appointments_plus_settings[api][facebook][app_secret]',
                 'type'      =>  'option',
 	        ],
 	        [
-	            'id'        =>  'awesome_transformations_settings[api][google][maps_api_key]',
+	            'id'        =>  'appointments_plus_settings[api][google][maps_api_key]',
                 'type'      =>  'option',
 	        ],
 	        [
-	            'id'        =>  'awesome_transformations_settings[awesome_search][live_search_params]',
+	            'id'        =>  'appointments_plus_settings[awesome_search][live_search_params]',
                 'type'      =>  'option',
                 'sanitize_callback' => '',
                 'sanitize_js_callback' => '',
 	        ],
             [
-                'id'        =>  'awesome_transformations_settings[support][contact][message]',
+                'id'        =>  'appointments_plus_settings[support][contact][message]',
                 'default'   =>  'If you have any problems scheduling an appointment please contact [name] at [email] or by text at [phone]',
                 'type'      =>  'option',
             ],
             [
-                'id'        =>  'awesome_transformations_settings[support][contact][name]',
+                'id'        =>  'appointments_plus_settings[support][contact][name]',
                 'type'      =>  'option',
             ],
             [
-                'id'        =>  'awesome_transformations_settings[support][contact][email]',
+                'id'        =>  'appointments_plus_settings[support][contact][email]',
                 'type'      =>  'option',
             ],
             [
-                'id'        =>  'awesome_transformations_settings[support][contact][phone]',
+                'id'        =>  'appointments_plus_settings[support][contact][phone]',
                 'type'      =>  'option',
             ]
 	    ];
@@ -174,13 +174,13 @@ class AWESOME_TRANSFORMATIONS_Options{
 	protected function get_controls():Array{
 	    return [
 	        [
-	            'id'            =>  'awesome_transformations_settings[modules]',
-	            'class'         =>  'Awesome_Transformations_Customize_Control_Checkbox_Multiple',
+	            'id'            =>  'appointments_plus_settings[modules]',
+	            'class'         =>  'Appointments_Plus_Customize_Control_Checkbox_Multiple',
                 'type'          =>  'checkbox',
-                'section'       =>  'awesome_transformations_section_modules',
+                'section'       =>  'appointments_plus_section_modules',
                 'label'         =>  __( 'Modules' ),
                 'description'   =>  __( 'Select Modules you would like to use on this site.'),
-                'sanitize_callback' =>  array("Awesome_Transformations_Customize_Control_Checkbox_Multiple", "sanitize_control"),
+                'sanitize_callback' =>  array("Appointments_Plus_Customize_Control_Checkbox_Multiple", "sanitize_control"),
                 'choices'       =>  [
                     'mailgun'     	=>  'Mailgun'
                 ],
@@ -189,51 +189,51 @@ class AWESOME_TRANSFORMATIONS_Options{
                 ]
 	        ],
 	        [
-	            'id'            =>  'awesome_transformations_settings[api][facebook][app_key]',
+	            'id'            =>  'appointments_plus_settings[api][facebook][app_key]',
                 'type'          =>  'text',
-                'section'       =>  'awesome_transformations_section_apis',
+                'section'       =>  'appointments_plus_section_apis',
                 'label'         =>  __( 'Facebook APP Key' ),
                 'description'   =>  __( 'Enter APP Key to link site with facebook'),
 	        ],
 	        [
-	            'id'            =>  'awesome_transformations_settings[api][facebook][app_secret]',
+	            'id'            =>  'appointments_plus_settings[api][facebook][app_secret]',
                 'type'          =>  'text',
-                'section'       =>  'awesome_transformations_section_apis',
+                'section'       =>  'appointments_plus_section_apis',
                 'label'         =>  __( 'Facebook APP Secret' ),
                 'description'   =>  __( 'Enter App Secret to link site with facebook'),
 	        ],
 	        [
-	            'id'            =>  'awesome_transformations_settings[api][google][maps_api_key]',
+	            'id'            =>  'appointments_plus_settings[api][google][maps_api_key]',
                 'type'          =>  'text',
-                'section'       =>  'awesome_transformations_section_apis',
+                'section'       =>  'appointments_plus_section_apis',
                 'label'         =>  __( 'Google Maps API Key' ),
                 'description'   =>  __( ''),
 	        ],
             [
-                'id'            =>  'awesome_transformations_settings[support][contact][message]',
+                'id'            =>  'appointments_plus_settings[support][contact][message]',
                 'type'          =>  'textarea',
-                'section'       =>  'awesome_transformations_section_support',
+                'section'       =>  'appointments_plus_section_support',
                 'label'         =>  __( 'Support Contact Message' ),
                 'description'   =>  __( 'Customize the message that will appear. Use [name], [email], or [phone] to include those details.'),
             ],
             [
-                'id'            =>  'awesome_transformations_settings[support][contact][name]',
+                'id'            =>  'appointments_plus_settings[support][contact][name]',
                 'type'          =>  'text',
-                'section'       =>  'awesome_transformations_section_support',
+                'section'       =>  'appointments_plus_section_support',
                 'label'         =>  __( 'Support Contact Name' ),
                 'description'   =>  __( 'Enter the name of the support person to feature on the site'),
             ],
             [
-                'id'            =>  'awesome_transformations_settings[support][contact][email]',
+                'id'            =>  'appointments_plus_settings[support][contact][email]',
                 'type'          =>  'email',
-                'section'       =>  'awesome_transformations_section_support',
+                'section'       =>  'appointments_plus_section_support',
                 'label'         =>  __( 'Support Contact Email' ),
                 'description'   =>  __( 'Enter the email address of the support person to feature on the site'),
             ],
             [
-                'id'            =>  'awesome_transformations_settings[support][contact][phone]',
+                'id'            =>  'appointments_plus_settings[support][contact][phone]',
                 'type'          =>  'number',
-                'section'       =>  'awesome_transformations_section_support',
+                'section'       =>  'appointments_plus_section_support',
                 'label'         =>  __( 'Support Contact Phone' ),
                 'description'   =>  __( 'Enter the phone number of the support person to feature on the site'),
             ]
@@ -243,4 +243,4 @@ class AWESOME_TRANSFORMATIONS_Options{
 	protected function init(){ 
 	    add_action('customize_register', array(&$this, 'create_customizer_settings'), 40);
 	}
-}AWESOME_TRANSFORMATIONS_Options::get_instance();
+}APPOINTMENTS_PLUS_Options::get_instance();

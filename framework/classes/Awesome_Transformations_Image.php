@@ -1,7 +1,7 @@
 <?php 
 
 /**
- * Awesome_Transformations_Image
+ * Appointments_Plus_Image
  * Insert description here
  *
  * @category
@@ -14,7 +14,7 @@
  * @see
  * @since
  */
-class Awesome_Transformations_Image extends TimberImage{
+class Appointments_Plus_Image extends TimberImage{
     //name of the image
     public $name;
     //title of image

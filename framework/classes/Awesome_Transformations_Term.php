@@ -1,12 +1,12 @@
-<?php class Awesome_Transformations_Term extends TimberTerm{
+<?php class Appointments_Plus_Term extends TimberTerm{
     
     public $thumbnail;
     
     public $metas;
     
-    public $PostClass = 'AWESOME_TRANSFORMATIONS_Product';
+    public $PostClass = 'APPOINTMENTS_PLUS_Product';
     
-    public $TermClass = 'Awesome_Transformations_Term';
+    public $TermClass = 'Appointments_Plus_Term';
     
     public $type = 'taxonomy';
     
@@ -27,7 +27,7 @@
         if($this->_specs != null)
             return $this->_specs;
             
-        $options = AWESOME_TRANSFORMATIONS_Theme::get_options(); 
+        $options = APPOINTMENTS_PLUS_Theme::get_options(); 
         
         if(!isset($options['pages']['strains']))
             return [];
@@ -61,13 +61,13 @@
     }
 
     public function thumbnail(){
-        $thumbnail_id = intval( get_term_meta($this->term_id, "_awesome_transformations_term_meta_thumbnail_id", true) );
+        $thumbnail_id = intval( get_term_meta($this->term_id, "_appointments_plus_term_meta_thumbnail_id", true) );
         if( $thumbnail_id > 1)
-            return new Awesome_Transformations_Image($thumbnail_id);
+            return new Appointments_Plus_Image($thumbnail_id);
             
         $thumbnail_id = intval( get_term_meta($this->term_id, 'thumbnail_id', true) );
         if($thumbnail_id  > 1)
-            return new Awesome_Transformations_Image( $thumbnail_id);
+            return new Appointments_Plus_Image( $thumbnail_id);
             
         return $thumbnail_id;
     }
@@ -76,7 +76,7 @@
         if ( !isset($this->_children) ) {
 			$children = get_term_children($this->ID, $this->taxonomy);
 			foreach ( $children as &$child ) {
-				$child = new Awesome_Transformations_Term($child);
+				$child = new Appointments_Plus_Term($child);
 			}
 			$this->_children = $children;
 		}
@@ -96,13 +96,13 @@
     }
     
     public function excerpt(){
-        return $this->meta("_awesome_transformations_term_meta_excerpt")['value'];
+        return $this->meta("_appointments_plus_term_meta_excerpt")['value'];
     }
     
     public function to_array(){
         $parent  = $this->parent;
         
-        if(is_a($parent, 'Awesome_Transformations_Term'))
+        if(is_a($parent, 'Appointments_Plus_Term'))
             $parent = get_object_vars($parent);
             
         $array = get_object_vars($this); 
@@ -129,7 +129,7 @@
         
         foreach($this->metas as $m_key => $m){
             $metas_proccessed[$m_key]= [
-              'meta'    =>  ucwords( str_replace('_', ' ', str_replace('percent', '%',  str_replace('_or_', '/', str_replace('_awesome_transformations_term_meta_', '', $m_key) ) ) ) ),
+              'meta'    =>  ucwords( str_replace('_', ' ', str_replace('percent', '%',  str_replace('_or_', '/', str_replace('_appointments_plus_term_meta_', '', $m_key) ) ) ) ),
               'value'   =>  $m[0]
             ];
         }
@@ -148,14 +148,14 @@
             $this->parent = new self($this->parent);
         
         $this->thumbnail = $this->thumbnail();
-       /* if($this->meta("_awesome_transformations_term_meta_thumbnail_id")){
-            $this->thumbnail = new Awesome_Transformations_Image( $this->meta("_awesome_transformations_term_meta_thumbnail_id") ); 
+       /* if($this->meta("_appointments_plus_term_meta_thumbnail_id")){
+            $this->thumbnail = new Appointments_Plus_Image( $this->meta("_appointments_plus_term_meta_thumbnail_id") ); 
         }elseif($this->meta('thumbnail_id')){
-            $this->thumbnail = new Awesome_Transformations_Image( $this->meta('thumbnail_id') );
+            $this->thumbnail = new Appointments_Plus_Image( $this->meta('thumbnail_id') );
         }*/
         
         
         
-        //$this->count = awesome_transformations_get_term_post_count($this->taxonomy, $this->ID);
+        //$this->count = appointments_plus_get_term_post_count($this->taxonomy, $this->ID);
     }
 }

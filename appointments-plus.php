@@ -1,22 +1,22 @@
 <?php
 
 /*
-Plugin Name: Awesome Transformations
-Plugin URI: https://raddcreative.com
+Plugin Name: Appointments Plus
+Plugin URI: https://self-transformations.com
 Description:  Custom WordPress Plugin Developed for Self Transformations
 Version: 1.0
 Author: Tyson Roehrkasse
-Author URI: https://raddcreative.com
+Author URI: https://twirltech.solutions
 */
 if (!defined('ABSPATH')) exit;
 
 
-if (!defined('AWESOME_TRANSFORMATIONS_DIR')) define('AWESOME_TRANSFORMATIONS_DIR', trailingslashit(plugin_dir_path(__FILE__)));
-if (!defined('AWESOME_TRANSFORMATIONS_URI')) define('AWESOME_TRANSFORMATIONS_URI', trailingslashit(plugin_dir_url(__FILE__)));
-if (!defined('AWESOME_TRANSFORMATIONS_MODULES_URL')) define('AWESOME_TRANSFORMATIONS_MODULES_URL', trailingslashit(AWESOME_TRANSFORMATIONS_URI . 'framework/modules'));
-if (!defined('AWESOME_TRANSFORMATIONS_MODULES_BASE')) define('AWESOME_TRANSFORMATIONS_MODULES_BASE', trailingslashit(AWESOME_TRANSFORMATIONS_DIR . 'framework/modules'));
-if (!defined('AWESOME_TRANSFORMATIONS_VER')) define('AWESOME_TRANSFORMATIONS_VER', '0.0.1');
-if (!defined('AWESOME_TRANSFORMATIONS_SLUG')) define('AWESOME_TRANSFORMATIONS_SLUG', "awesome_transformations");
+if (!defined('APPOINTMENTS_PLUS_DIR')) define('APPOINTMENTS_PLUS_DIR', trailingslashit(plugin_dir_path(__FILE__)));
+if (!defined('APPOINTMENTS_PLUS_URI')) define('APPOINTMENTS_PLUS_URI', trailingslashit(plugin_dir_url(__FILE__)));
+if (!defined('APPOINTMENTS_PLUS_MODULES_URL')) define('APPOINTMENTS_PLUS_MODULES_URL', trailingslashit(APPOINTMENTS_PLUS_URI . 'framework/modules'));
+if (!defined('APPOINTMENTS_PLUS_MODULES_BASE')) define('APPOINTMENTS_PLUS_MODULES_BASE', trailingslashit(APPOINTMENTS_PLUS_DIR . 'framework/modules'));
+if (!defined('APPOINTMENTS_PLUS_VER')) define('APPOINTMENTS_PLUS_VER', '0.0.1');
+if (!defined('APPOINTMENTS_PLUS_SLUG')) define('APPOINTMENTS_PLUS_SLUG', "appointments_plus");
 
 
 global $AWESOME_FRAMEWORK;
@@ -24,7 +24,7 @@ global $AWESOME_FRAMEWORK_PLUGIN_FILE_NAME;
 $AWESOME_FRAMEWORK_PLUGIN_FILE_NAME = __FILE__;
 
 /**
- * Awesome_Transformations
+ * Appointments_Plus
  * Primary plugin driver
  *
  * @category
@@ -37,12 +37,12 @@ $AWESOME_FRAMEWORK_PLUGIN_FILE_NAME = __FILE__;
  * @see
  * @since
  */
-class Awesome_Transformations
+class Appointments_Plus
 {
     /**
      *
      */
-    const TRANSIENT_PREFIX = "awesome_transformations_transient_";
+    const TRANSIENT_PREFIX = "appointments_plus_transient_";
 
     /**
      *
@@ -62,7 +62,7 @@ class Awesome_Transformations
     /**
      *
      */
-    const SLUG = "Awesome_Transformations";
+    const SLUG = "Appointments_Plus";
 
     /**
      * Instance of class
@@ -161,7 +161,7 @@ class Awesome_Transformations
     {
         if (self::$OPTIONS != null) return self::$OPTIONS;
 
-        self::$OPTIONS = get_option('awesome_transformations_settings', []);
+        self::$OPTIONS = get_option('appointments_plus_settings', []);
 
         if (isset(self::$OPTIONS['modules']))
             self::$OPTIONS['modules'] = explode(',', self::$OPTIONS['modules']);
@@ -189,15 +189,15 @@ class Awesome_Transformations
      */
     public function _body_class($classes)
     {
-        $classes[] = 'awesome_transformations';
+        $classes[] = 'appointments_plus';
 
-        if (Awesome_Transformations::$Mobile_Detect->isMobile())
+        if (Appointments_Plus::$Mobile_Detect->isMobile())
             $classes[] = 'mobile';
 
-        if (Awesome_Transformations::$Mobile_Detect->isTablet())
+        if (Appointments_Plus::$Mobile_Detect->isTablet())
             $classes[] = 'tablet';
 
-        if (!Awesome_Transformations::$Mobile_Detect->isMobile() && !Awesome_Transformations::$Mobile_Detect->isTablet())
+        if (!Appointments_Plus::$Mobile_Detect->isMobile() && !Appointments_Plus::$Mobile_Detect->isTablet())
             $classes[] = 'desktop';
 
         return $classes;
@@ -219,7 +219,7 @@ class Awesome_Transformations
     public function add_to_twig_filters($twig)
     {
         /** AR_STRING_REPLACEs */
-        $twig->addFilter(new Twig_SimpleFilter('AWESOME_TRANSFORMATIONS_FILTER_STR_REPLACE', function ($str) {
+        $twig->addFilter(new Twig_SimpleFilter('APPOINTMENTS_PLUS_FILTER_STR_REPLACE', function ($str) {
             $str = $this->twig_filter_ar_this_year($str);
             $str = $this->twig_filter_ar_last_year($str);
 
@@ -227,21 +227,21 @@ class Awesome_Transformations
         }));
 
         /** Format Phone filter */
-        $twig->addFilter(new Twig_SimpleFilter('AWESOME_TRANSFORMATIONS_FORMATTED_PHONE', function ($str) {
+        $twig->addFilter(new Twig_SimpleFilter('APPOINTMENTS_PLUS_FORMATTED_PHONE', function ($str) {
             return csip_get_formatted_phone($str, 'US');
         }));
 
-        $twig->addFilter(new Twig_SimpleFilter('AWESOME_TRANSFORMATIONS_UNESCAPE', function ($str) {
+        $twig->addFilter(new Twig_SimpleFilter('APPOINTMENTS_PLUS_UNESCAPE', function ($str) {
             return html_entity_decode($str);
         }));
 
         /** Pretty text */
-        $twig->addFilter(new Twig_SimpleFilter('AWESOME_TRANSFORMATIONS_BEAUTIFY', function ($str) {
+        $twig->addFilter(new Twig_SimpleFilter('APPOINTMENTS_PLUS_BEAUTIFY', function ($str) {
             return csip_beautify($str);
         }));
 
         /** Ugly db friendly text */
-        $twig->addFilter(new Twig_SimpleFilter('AWESOME_TRANSFORMATIONS_UGLIFY', function ($str) {
+        $twig->addFilter(new Twig_SimpleFilter('APPOINTMENTS_PLUS_UGLIFY', function ($str) {
             return csip_uglify($str, "_");
         }));
 
@@ -256,7 +256,7 @@ class Awesome_Transformations
 
     public function load_frontend_scripts()
     {
-        wp_enqueue_script('awesome_transformations-core');
+        wp_enqueue_script('appointments_plus-core');
     }
 
     /**
@@ -265,11 +265,11 @@ class Awesome_Transformations
      */
     public function load_global_styles_scripts()
     {
-        wp_enqueue_style('select2', AWESOME_TRANSFORMATIONS_URI . 'assets/css/vendor/select2/select2.min.css', array(), AWESOME_TRANSFORMATIONS_VER);
-        wp_register_style('slick-theme', AWESOME_TRANSFORMATIONS_URI . "assets/css/vendor/slick/slick-theme.css", array(), AWESOME_TRANSFORMATIONS_VER);
-        wp_register_style('slick', AWESOME_TRANSFORMATIONS_URI . "assets/css/vendor/slick/slick.css", array('slick-theme'), AWESOME_TRANSFORMATIONS_VER);
-        wp_register_style('simplemde', AWESOME_TRANSFORMATIONS_URI . "assets/css/vendor/simplemde/simplemde.min.css", array(), AWESOME_TRANSFORMATIONS_VER);
-        wp_register_style('vue-slider-component', AWESOME_TRANSFORMATIONS_URI . "assets/css/vendor/awesoome-vue-es5-slider-component/vue-slider-component.css", array(), AWESOME_TRANSFORMATIONS_VER);
+        wp_enqueue_style('select2', APPOINTMENTS_PLUS_URI . 'assets/css/vendor/select2/select2.min.css', array(), APPOINTMENTS_PLUS_VER);
+        wp_register_style('slick-theme', APPOINTMENTS_PLUS_URI . "assets/css/vendor/slick/slick-theme.css", array(), APPOINTMENTS_PLUS_VER);
+        wp_register_style('slick', APPOINTMENTS_PLUS_URI . "assets/css/vendor/slick/slick.css", array('slick-theme'), APPOINTMENTS_PLUS_VER);
+        wp_register_style('simplemde', APPOINTMENTS_PLUS_URI . "assets/css/vendor/simplemde/simplemde.min.css", array(), APPOINTMENTS_PLUS_VER);
+        wp_register_style('vue-slider-component', APPOINTMENTS_PLUS_URI . "assets/css/vendor/awesoome-vue-es5-slider-component/vue-slider-component.css", array(), APPOINTMENTS_PLUS_VER);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
             $js_ext = '.js';
@@ -282,31 +282,31 @@ class Awesome_Transformations
         $maps_api_key = isset($OPTIONS['api']) && isset($OPTIONS['api']['google']) && isset($OPTIONS['api']['google']['maps_api_key']) ? $OPTIONS['api']['google']['maps_api_key'] : '';
 
         if (!is_admin())
-            wp_register_script('lodash', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/lodash/lodash{$js_ext}", array(), AWESOME_TRANSFORMATIONS_VER, true);
+            wp_register_script('lodash', APPOINTMENTS_PLUS_URI . "assets/js/vendor/lodash/lodash{$js_ext}", array(), APPOINTMENTS_PLUS_VER, true);
 
-        wp_register_script('google-places', '//maps.googleapis.com/maps/api/js?libraries=places&key=' . $maps_api_key, array(), AWESOME_TRANSFORMATIONS_VER);
-        wp_register_script('vue', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/vue/vue{$js_ext}", array(), AWESOME_TRANSFORMATIONS_VER, true);
-        wp_register_script('vuex', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/vuex/vuex{$js_ext}", ['vue'], AWESOME_TRANSFORMATIONS_VER, true);
-        wp_register_script('vue-router', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/vue-router/vue-router{$js_ext}", array('vue'), AWESOME_TRANSFORMATIONS_VER, true);
+        wp_register_script('google-places', '//maps.googleapis.com/maps/api/js?libraries=places&key=' . $maps_api_key, array(), APPOINTMENTS_PLUS_VER);
+        wp_register_script('vue', APPOINTMENTS_PLUS_URI . "assets/js/vendor/vue/vue{$js_ext}", array(), APPOINTMENTS_PLUS_VER, true);
+        wp_register_script('vuex', APPOINTMENTS_PLUS_URI . "assets/js/vendor/vuex/vuex{$js_ext}", ['vue'], APPOINTMENTS_PLUS_VER, true);
+        wp_register_script('vue-router', APPOINTMENTS_PLUS_URI . "assets/js/vendor/vue-router/vue-router{$js_ext}", array('vue'), APPOINTMENTS_PLUS_VER, true);
 
-        wp_register_script('awesome-vue-toolbox', AWESOME_TRANSFORMATIONS_URI . 'assets/js/awesome-vue-toolbox.js', array('vue', 'jquery'), AWESOME_TRANSFORMATIONS_VER, true);
-        wp_register_script('tether', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/tether/tether{$js_ext}", array('jquery'), AWESOME_TRANSFORMATIONS_VER, true);
-        wp_register_script('bootstrap-slider', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/bootstrap-slider/bootstrap-slider{$js_ext}", array('jquery', 'bootstrap'), AWESOME_TRANSFORMATIONS_VER, true);
-        wp_register_script('jquery-numeral', AWESOME_TRANSFORMATIONS_URI . 'assets/js/vendor/numeral/numeral.min.js', array('jquery'), AWESOME_TRANSFORMATIONS_VER, true);
+        wp_register_script('awesome-vue-toolbox', APPOINTMENTS_PLUS_URI . 'assets/js/awesome-vue-toolbox.js', array('vue', 'jquery'), APPOINTMENTS_PLUS_VER, true);
+        wp_register_script('tether', APPOINTMENTS_PLUS_URI . "assets/js/vendor/tether/tether{$js_ext}", array('jquery'), APPOINTMENTS_PLUS_VER, true);
+        wp_register_script('bootstrap-slider', APPOINTMENTS_PLUS_URI . "assets/js/vendor/bootstrap-slider/bootstrap-slider{$js_ext}", array('jquery', 'bootstrap'), APPOINTMENTS_PLUS_VER, true);
+        wp_register_script('jquery-numeral', APPOINTMENTS_PLUS_URI . 'assets/js/vendor/numeral/numeral.min.js', array('jquery'), APPOINTMENTS_PLUS_VER, true);
 
-        wp_register_script('bootstrap', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/bootstrap/bootstrap{$js_ext}", array('jquery', 'tether'), AWESOME_TRANSFORMATIONS_VER, true);
+        wp_register_script('bootstrap', APPOINTMENTS_PLUS_URI . "assets/js/vendor/bootstrap/bootstrap{$js_ext}", array('jquery', 'tether'), APPOINTMENTS_PLUS_VER, true);
 
-        wp_register_script('slick', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/slick/slick{$js_ext}", array('jquery'), AWESOME_TRANSFORMATIONS_VER);
-        wp_register_script('vue-select', AWESOME_TRANSFORMATIONS_URI . "assets/js/vendor/vue-select/vue-select.js", array('jquery'), AWESOME_TRANSFORMATIONS_VER);
+        wp_register_script('slick', APPOINTMENTS_PLUS_URI . "assets/js/vendor/slick/slick{$js_ext}", array('jquery'), APPOINTMENTS_PLUS_VER);
+        wp_register_script('vue-select', APPOINTMENTS_PLUS_URI . "assets/js/vendor/vue-select/vue-select.js", array('jquery'), APPOINTMENTS_PLUS_VER);
 
-        wp_register_script('awesome_transformations-core', AWESOME_TRANSFORMATIONS_URI . 'assets/js/app.js', array('bootstrap', 'jquery', 'masonry', 'jquery-select2', 'slick', 'vue'), AWESOME_TRANSFORMATIONS_VER, true);
-        wp_localize_script('awesome_transformations-core', 'AWESOME_TRANSFORMATIONS_ARGS', array(
+        wp_register_script('appointments_plus-core', APPOINTMENTS_PLUS_URI . 'assets/js/app.js', array('bootstrap', 'jquery', 'masonry', 'jquery-select2', 'slick', 'vue'), APPOINTMENTS_PLUS_VER, true);
+        wp_localize_script('appointments_plus-core', 'APPOINTMENTS_PLUS_ARGS', array(
                 'API_BASE' => site_url('/wp-json/cap')
             )
         );
 
-        wp_register_script('faqs-viewer', AWESOME_TRANSFORMATIONS_URI . 'assets/js/faqs-viewer.js', array('awesome_transformations-core'), AWESOME_TRANSFORMATIONS_VER, true);
-        wp_register_script('services-viewer', AWESOME_TRANSFORMATIONS_URI . 'assets/js/services-viewer.js', array('awesome_transformations-core'), AWESOME_TRANSFORMATIONS_VER, true);
+        wp_register_script('faqs-viewer', APPOINTMENTS_PLUS_URI . 'assets/js/faqs-viewer.js', array('appointments_plus-core'), APPOINTMENTS_PLUS_VER, true);
+        wp_register_script('services-viewer', APPOINTMENTS_PLUS_URI . 'assets/js/services-viewer.js', array('appointments_plus-core'), APPOINTMENTS_PLUS_VER, true);
     }
 
     /**
@@ -324,7 +324,7 @@ class Awesome_Transformations
         } else {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
-        $this->visitor['geo_location'] = TimberHelper::transient(Awesome_Transformations::get_transient_key("ip_geo_location_" . str_replace(".", "_", $ip)), function () {
+        $this->visitor['geo_location'] = TimberHelper::transient(Appointments_Plus::get_transient_key("ip_geo_location_" . str_replace(".", "_", $ip)), function () {
 
             if (isset($_SERVER['GEOIP_LATITUDE'])):
                 return [
@@ -348,7 +348,7 @@ class Awesome_Transformations
                     'latitude' => 39.8282
                 ];
             endif;
-        }, Awesome_Transformations::DATA_CACHE_TIME_SHORT);
+        }, Appointments_Plus::DATA_CACHE_TIME_SHORT);
 
         if (isset($this->visitor['geo_location']['loc'])) {
             $loc = explode(',', $this->visitor['geo_location']['loc']);
@@ -370,17 +370,17 @@ class Awesome_Transformations
     {
         global $post;
 
-        $data = TimberHelper::transient(Awesome_Transformations::get_transient_key("csip_global_context"), function () {
+        $data = TimberHelper::transient(Appointments_Plus::get_transient_key("csip_global_context"), function () {
             $data = array();
 
             $data['site'] = new TimberSite();
-            $data['cap']['AWESOME_TRANSFORMATIONS_URI'] = AWESOME_TRANSFORMATIONS_URI;
+            $data['cap']['APPOINTMENTS_PLUS_URI'] = APPOINTMENTS_PLUS_URI;
             $data['meta']['url'] = site_url('/');
             $data['meta']['type'] = 'website';
             $data['options'] = self::get_options();
 
             return $data;
-        }, Awesome_Transformations::DATA_CACHE_TIME_LONG);
+        }, Appointments_Plus::DATA_CACHE_TIME_LONG);
 
         $context = array_merge($context, $data);
         $context['http_host'] = 'https://' . TimberURLHelper::get_host();
@@ -399,11 +399,11 @@ class Awesome_Transformations
             $context['posts'] = Timber::query_posts();
 
         if (isset($post->ID))
-            $context['post'] = new AWESOME_TRANSFORMATIONS_Post($post->ID);
+            $context['post'] = new APPOINTMENTS_PLUS_Post($post->ID);
 
-        $context['cap']['is_tablet'] = Awesome_Transformations::$Mobile_Detect->isTablet();
-        $context['cap']['is_mobile'] = Awesome_Transformations::$Mobile_Detect->isMobile();
-        $context['cap']['is_desktop'] = (!Awesome_Transformations::$Mobile_Detect->isTablet() && !Awesome_Transformations::$Mobile_Detect->isMobile());
+        $context['cap']['is_tablet'] = Appointments_Plus::$Mobile_Detect->isTablet();
+        $context['cap']['is_mobile'] = Appointments_Plus::$Mobile_Detect->isMobile();
+        $context['cap']['is_desktop'] = (!Appointments_Plus::$Mobile_Detect->isTablet() && !Appointments_Plus::$Mobile_Detect->isMobile());
 
         return array_merge((array)$data, $context);
     }
@@ -460,7 +460,7 @@ class Awesome_Transformations
 
     public function bootstrap_api()
     {
-        foreach (glob(AWESOME_TRANSFORMATIONS_DIR . "/framework/api/*.php") as $file):
+        foreach (glob(APPOINTMENTS_PLUS_DIR . "/framework/api/*.php") as $file):
             require_once($file);
         endforeach;
     }
@@ -470,7 +470,7 @@ class Awesome_Transformations
      */
     protected function load_modules()
     {
-        $module_dirs = $dirs = array_filter(glob(trailingslashit(AWESOME_TRANSFORMATIONS_DIR) . 'framework/modules/*'), 'is_dir');
+        $module_dirs = $dirs = array_filter(glob(trailingslashit(APPOINTMENTS_PLUS_DIR) . 'framework/modules/*'), 'is_dir');
 
         $module_dirs = apply_filters('awesome_framework_module_dirs', $module_dirs);
 
@@ -481,10 +481,10 @@ class Awesome_Transformations
             $dir = explode('/', trim($dir, '/'));
             $dir = $dir[count($dir) - 1];
 
-            if (!file_exists(trailingslashit(AWESOME_TRANSFORMATIONS_DIR) . "framework/modules/$dir/$dir.php"))
+            if (!file_exists(trailingslashit(APPOINTMENTS_PLUS_DIR) . "framework/modules/$dir/$dir.php"))
                 continue;
 
-            include_once(trailingslashit(AWESOME_TRANSFORMATIONS_DIR) . "framework/modules/$dir/$dir.php");
+            include_once(trailingslashit(APPOINTMENTS_PLUS_DIR) . "framework/modules/$dir/$dir.php");
         }
     }
 
@@ -502,7 +502,7 @@ class Awesome_Transformations
      */
     private function load_includes()
     {
-        foreach (glob(AWESOME_TRANSFORMATIONS_DIR . "/framework/inc/*.php") as $file):
+        foreach (glob(APPOINTMENTS_PLUS_DIR . "/framework/inc/*.php") as $file):
             include_once($file);
         endforeach;
     }
@@ -521,7 +521,7 @@ class Awesome_Transformations
      */
     private function load_requires()
     {
-        foreach (glob(AWESOME_TRANSFORMATIONS_DIR . "framework/req/*.php") as $file):
+        foreach (glob(APPOINTMENTS_PLUS_DIR . "framework/req/*.php") as $file):
             require_once($file);
         endforeach;
     }
@@ -540,7 +540,7 @@ class Awesome_Transformations
      */
     private function load_classes()
     {
-        foreach (glob(AWESOME_TRANSFORMATIONS_DIR . "framework/classes/*.php") as $file):
+        foreach (glob(APPOINTMENTS_PLUS_DIR . "framework/classes/*.php") as $file):
             require_once($file);
 
             /** Load Widgets */
@@ -557,7 +557,7 @@ class Awesome_Transformations
      */
     private function load_vendors()
     {
-        require_once(AWESOME_TRANSFORMATIONS_DIR . "framework/vendor/autoload.php");
+        require_once(APPOINTMENTS_PLUS_DIR . "framework/vendor/autoload.php");
     }
 
     /**
@@ -566,7 +566,7 @@ class Awesome_Transformations
     private function bootstrap_view_locations()
     {
         $views = [
-            AWESOME_TRANSFORMATIONS_DIR . 'views'
+            APPOINTMENTS_PLUS_DIR . 'views'
         ];
 
         if (isset(self::$OPTIONS['modules']) && !empty(self::$OPTIONS['modules'])) {
@@ -584,7 +584,7 @@ class Awesome_Transformations
         if (isset(self::$OPTIONS['modules']) && !empty(self::$OPTIONS['modules'])) {
             $views = array_merge($views, array_map(function ($m) {
                 $m = str_replace('_', '-', $m);
-                return trailingslashit(AWESOME_TRANSFORMATIONS_DIR) . "framework/modules/$m/views";
+                return trailingslashit(APPOINTMENTS_PLUS_DIR) . "framework/modules/$m/views";
             }, self::$OPTIONS['modules']));
         }
 
@@ -642,4 +642,4 @@ class Awesome_Transformations
     }
 }
 
-Awesome_Transformations::get_instance();
+Appointments_Plus::get_instance();

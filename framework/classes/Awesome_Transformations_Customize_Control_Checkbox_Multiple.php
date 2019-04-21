@@ -9,7 +9,7 @@ add_action( 'customize_register', function(){
      * 
      *
      */
-    class Awesome_Transformations_Customize_Control_Checkbox_Multiple extends WP_Customize_Control {
+    class Appointments_Plus_Customize_Control_Checkbox_Multiple extends WP_Customize_Control {
     
         /**
          * The type of customize control being rendered.
@@ -28,7 +28,7 @@ add_action( 'customize_register', function(){
          * @return void
          */
         public function enqueue() {
-            wp_enqueue_script( 'awesome-transformations-customize-controls', trailingslashit( AWESOME_TRANSFORMATIONS_URI ) . 'assets/js/customize-controls.js', array( 'jquery' ), null, true );
+            wp_enqueue_script( 'appointments-plus-customize-controls', trailingslashit( APPOINTMENTS_PLUS_URI ) . 'assets/js/customize-controls.js', array( 'jquery' ), null, true );
         }
     
         /**

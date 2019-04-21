@@ -1,10 +1,10 @@
 <?php 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-class Awesome_Transformations_Post extends TimberPost{
-     public $TermClass = 'Awesome_Transformations_Term';
-     public $PostClass = 'Awesome_Transformations_Post';
-     public $ImageClass = 'Awesome_Transformations_Image';
+class Appointments_Plus_Post extends TimberPost{
+     public $TermClass = 'Appointments_Plus_Term';
+     public $PostClass = 'Appointments_Plus_Post';
+     public $ImageClass = 'Appointments_Plus_Image';
      
     /**
   	 * to_array
