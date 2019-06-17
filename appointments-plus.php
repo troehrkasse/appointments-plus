@@ -602,7 +602,7 @@ class Appointments_Plus
         Timber::$locations = apply_filters('awesome_framework_views', $views);
     }
 
-    /**
+    /*
      * Initialize plugin and all wp hooks and filters
      */
     private function init()
@@ -630,6 +630,9 @@ class Appointments_Plus
         add_filter('body_class', array(&$this, '_body_class'));
 
         unset($loader);
+
+        /** Set up Package product type for Woocommerce */
+        add_action('init', array(&$this, 'add_package_product_type'));
 
         //Admin only hooks and scripts
         if (!is_admin()) return;
