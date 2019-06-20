@@ -142,14 +142,14 @@ add_filter( 'wc_add_to_cart_message_html', 'appointment_packages_add_to_cart_fun
 function appointment_packages_add_to_cart_function( $message, $products ) {
 	$purchased = intval(key($products));
 	// Get a list of appointment package products
-	$args = [
-		'type'		=>	'appointment_package'
-	];
-	$appointment_packages = wc_get_products($args);
+	$appointment_packages = wc_get_products([
+		'type'		=>	'appointment_package',
+		'return' 	=> 'ids'
+	]);
 
 	// See if the purchased item matches an appointment package product
 	foreach ($appointment_packages as $package) {
-		if ($package->get_id() == $purchased) {
+		if ($package == $purchased) {
 			$appointment = intval(get_post_meta($purchased, '_appointment_package_type', true));
 			// Match! Customize the message accordingly
 			$message = '<a href="' . get_permalink($appointment) . '" tabindex="1" class="button wc-forward">Schedule Appointment</a>' . 
@@ -159,3 +159,89 @@ function appointment_packages_add_to_cart_function( $message, $products ) {
 	}
 	return $message; 
 }
+
+/* Hook into post-checkout Woocommerce to look for packages and add package/appt data to user
+ * Also,  */
+add_action('woocommerce_thankyou', 'add_package_to_user', 10, 1);
+function add_package_to_user($order_id) {
+	// Get info for the order, the user, and any packages/appointments in the order
+	$order = wc_get_order($order_id);
+	$user = $order->get_user_id();
+	$line_items = $order->get_items();
+	$packages = [];
+	$appointments = [];
+	$current_packages = is_array(get_user_meta($user, 'appointment_packages', true)) ? get_user_meta($user, 'appointment_packages', true) : [];
+	foreach ($line_items as $line_item) {
+		$product = wc_get_product($line_item->get_product_id());
+		$product_type = $product->get_type();
+		$product_id = $product->get_id();
+		if ($product_type == 'appointment_package') {
+			$packages[$product_id] = intval(get_post_meta($product_id, '_appointment_package_type', true));
+		} elseif ($product_type == 'appointment') {
+			$appointments[$product_id] = $line_item->get_quantity();
+		}
+	}
+
+	/*
+	 * Check to see if any packages were purchased
+	 * If so, apply any qualifying appointments on this order
+	 */
+	if (sizeof($packages) > 0) {
+
+		foreach ($packages as $package=>$appointment) {
+			$quantity = intval(get_post_meta($package, '_appointment_package_quantity', true));
+			$consumed = $appointments[$appointment];
+			$current_packages[$order_id] = [
+				'order_id'				=>	$order_id,
+				'package_id'			=>	$package,
+				'appointment_id'		=>	$appointment,
+				'quantity'				=>	$quantity,
+				'quantity_remaining'	=>	$quantity - $consumed,
+				'created_by'			=>	'user'
+			];
+			// The appointment has been accounted for, so remove it before the next step
+			unset($appointments[$appointment]);
+		}
+	}
+
+	/*
+	 * Check for any remaining appointments on this order
+	 * If appointments and if user selected to pay with package and if the user has current packages
+	 */
+	if ((sizeof($appointments) > 0) && ($order->get_payment_method() == 'cod') && (sizeof($current_packages) > 0)) {
+		foreach ($current_packages as $package_key => $package) {
+			if ($package['quantity_remaining'] > 0) {
+				foreach ($appointments as $appointment => $quantity) {
+					if ($appointment == $package['appointment_id']) {
+						// Subtract this appointment 
+						$package['quantity_remaining'] -= $quantity;
+						$current_packages[$package_key] = $package;
+						unset($appointments[$appointment]);
+						// If no more appointments are in the order, mark the appointment as paid
+						if (sizeof($appointments) == 0) {
+							$order->update_status('completed');
+						}
+					}
+				}
+			}
+			
+		}
+		//!Kint::dump($current_packages, $appointments); die();
+	}
+	//!Kint::dump($order, $current_packages); die();
+
+	// Update packages user meta 
+	$updated = update_user_meta($user, 'appointment_packages', $current_packages);
+}
+
+/* Apply discounts at checkout for any package holders 
+add_action('woocommerce_cart_calculate_fees' , 'apply_package_discounts', 10, 1);
+function apply_package_discounts($cart) {
+	$cart_contents = $cart->get_cart_contents();
+	foreach($cart_contents as $line_item) {
+		//!Kint::dump($line_item); die();
+		$appointment = $line_item['product_id'];
+	}
+	!Kint::dump($cart); die();
+}
+*/
