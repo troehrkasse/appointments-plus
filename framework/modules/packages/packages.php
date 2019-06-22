@@ -51,7 +51,7 @@ foreach ($appointable_products as $product) {
 	$title = $product->get_title();
 	$select_options[$id] = $title;
 }
-//!Kint::dump(get_post_meta(get_the_ID())); die();
+
 ?><div id='appointment_package_options' class='panel woocommerce_options_panel'><?php
 	?><div class='options_group'><?php
 		woocommerce_wp_text_input( 
@@ -121,9 +121,62 @@ function register_appointment_package_admin_menu () {
   );
 }
 function render_appointments_plus_admin_menu(){
+	// Build data on current and previous packages for all users
+	$users_objects = get_users();
+	$current_packages = [];
+	$previous_packages = [];
+	$users = [];
+	foreach ($users_objects as $user) {
+		$users[] = [
+			'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
+			'id'		=>	$user->ID
+		];
+		$user_packages = is_array(get_user_meta($user->ID, 'appointment_packages', true)) ? get_user_meta($user->ID, 'appointment_packages', true) : false;
+		if ($user_packages) {
+			foreach ($user_packages as $package) {
+				if ($package['quantity_remaining'] > 0) {
+					$current_packages[] = [
+						'user'		=>	[
+							'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
+							'id'		=>	$user->ID
+						],
+						'title'		=>	get_the_title($package['package_id']),
+						'quantity'	=>	$package['quantity'],
+						'remaining'	=>	$package['quantity_remaining'],
+					];
+				} else {
+					$previous_packages[] = [
+						'user'		=>	[
+							'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
+							'id'		=>	$user->ID
+						],
+						'title'		=>	get_the_title($package['package_id']),
+						'quantity'	=>	$package['quantity'],
+						'remaining'	=>	$package['quantity_remaining'],
+					];
+				}
+			}
+		}
+	} 
+
+	// Populate list of Appointment Packages
+	$appointment_packages = wc_get_products([
+		'type'		=>	'appointment_package',
+		'return' 	=> 'ids'
+	]);
+	$packages = [];
+	foreach ($appointment_packages as $appointment_package) {
+		$packages[] = [
+			'title'		=>	get_the_title($appointment_package),
+			'id'		=>	$appointment_package
+		];
+	}
+
 	$context = [
-		 'title'     =>  'Appointment Package Tracking',
-		 'info'      =>  'Details for packages and the ability to add new ones will show here.'
+		 'current_packages'		=>	$current_packages,
+		 'previous_packages'	=>	$previous_packages,
+		 'users'				=>	$users,
+		 'packages'				=>	$packages
 	];
 	Timber::render('package-tracking.twig', $context);
 }
@@ -160,8 +213,10 @@ function appointment_packages_add_to_cart_function( $message, $products ) {
 	return $message; 
 }
 
-/* Hook into post-checkout Woocommerce to look for packages and add package/appt data to user
- * Also,  */
+/* 
+ * Hook into post-checkout Woocommerce to look for packages and add package/appt data to user
+ * This is for user-purchased packages only as the "Thank You" action is not triggered for manually added packages
+ */
 add_action('woocommerce_thankyou', 'add_package_to_user', 10, 1);
 function add_package_to_user($order_id) {
 	// Get info for the order, the user, and any packages/appointments in the order
@@ -178,7 +233,11 @@ function add_package_to_user($order_id) {
 		if ($product_type == 'appointment_package') {
 			$packages[$product_id] = intval(get_post_meta($product_id, '_appointment_package_type', true));
 		} elseif ($product_type == 'appointment') {
-			$appointments[$product_id] = $line_item->get_quantity();
+			if (isset($appointments[$product_id])) {
+				$appointments[$product_id] += 1;
+			} else {
+				$appointments[$product_id] = $line_item->get_quantity();
+			}
 		}
 	}
 
@@ -187,20 +246,30 @@ function add_package_to_user($order_id) {
 	 * If so, apply any qualifying appointments on this order
 	 */
 	if (sizeof($packages) > 0) {
-
 		foreach ($packages as $package=>$appointment) {
 			$quantity = intval(get_post_meta($package, '_appointment_package_quantity', true));
-			$consumed = $appointments[$appointment];
+			$consumed = isset($appointments[$appointment]) ? $appointments[$appointment] : 0;
+			$quantity_remaining = $quantity - $consumed >= 0 ? $quantity - $consumed : 0;
+			$extra_quantity = $quantity - $consumed < 0 ? $consumed - $quantity : false;
+			
 			$current_packages[$order_id] = [
 				'order_id'				=>	$order_id,
 				'package_id'			=>	$package,
 				'appointment_id'		=>	$appointment,
 				'quantity'				=>	$quantity,
-				'quantity_remaining'	=>	$quantity - $consumed,
+				'quantity_remaining'	=>	$quantity - $consumed >= 0 ? $quantity - $consumed : 0,
 				'created_by'			=>	'user'
 			];
-			// The appointment has been accounted for, so remove it before the next step
-			unset($appointments[$appointment]);
+			/*
+			 * If all appointment quantity was accounted for with the package then remove it
+			 * Otherwise, simply adjust quantity remaining
+			 */
+			if ($extra_quantity) {
+				$appointments[$appointment] = $extra_quantity;
+			} else {
+				unset($appointments[$appointment]);
+			}
+			
 		}
 	}
 
@@ -214,34 +283,112 @@ function add_package_to_user($order_id) {
 				foreach ($appointments as $appointment => $quantity) {
 					if ($appointment == $package['appointment_id']) {
 						// Subtract this appointment 
+						// TODO account for someone buying more appointments than they have remaining
+						$quantity_remaining = $package['quantity_remaining'] - $quantity >= 0 ? $package['quantity_remaining'] - $quantity : 0;
+						$extra_quantity = $package['quantity_remaining'] - $quantity < 0 ? $quantity - $package['quantity_remaining'] : false;
 						$package['quantity_remaining'] -= $quantity;
 						$current_packages[$package_key] = $package;
-						unset($appointments[$appointment]);
-						// If no more appointments are in the order, mark the appointment as paid
-						if (sizeof($appointments) == 0) {
-							$order->update_status('completed');
+
+						if ($extra_quantity) {
+							$appointments[$appointment] = $extra_quantity;
+						} else {
+							unset($appointments[$appointment]);
 						}
 					}
 				}
 			}
-			
 		}
-		//!Kint::dump($current_packages, $appointments); die();
+		// If no more appointments are in the order, mark the appointment as paid
+		if (sizeof($appointments) == 0) {
+			$order->update_status('completed');
+			$order->add_order_note( __('Paid for using a prepaid package.') );
+		}
 	}
-	//!Kint::dump($order, $current_packages); die();
 
 	// Update packages user meta 
 	$updated = update_user_meta($user, 'appointment_packages', $current_packages);
 }
 
-/* Apply discounts at checkout for any package holders 
-add_action('woocommerce_cart_calculate_fees' , 'apply_package_discounts', 10, 1);
-function apply_package_discounts($cart) {
-	$cart_contents = $cart->get_cart_contents();
-	foreach($cart_contents as $line_item) {
-		//!Kint::dump($line_item); die();
-		$appointment = $line_item['product_id'];
-	}
-	!Kint::dump($cart); die();
+/* Add My Packages menu to Woocommerce account page */
+add_filter( 'woocommerce_account_menu_items', 'packages_menu_items', 10, 1 );
+function packages_menu_items ( $items ) {
+    $items['packages'] = __( 'Packages', 'woocommerce' );
+    return $items;
 }
-*/
+add_action( 'init', 'add_packages_endpoint' );
+function add_packages_endpoint() {
+    add_rewrite_endpoint( 'packages', EP_PAGES );
+}
+add_action( 'woocommerce_account_packages_endpoint', 'packages_endpoint_content' );
+function packages_endpoint_content() {
+	$user = get_current_user_id();
+	$packages = is_array(get_user_meta($user, 'appointment_packages', true)) ? get_user_meta($user, 'appointment_packages', true) : false;
+	$current_packages = [];
+	$previous_packages = [];
+	if ($packages) {
+		foreach ($packages as $package) {
+			if ($package['quantity_remaining'] == 0) {
+				$previous_packages[] = $package;
+			} else {
+				$current_packages[] = $package;
+			}
+		}
+
+
+	}
+	// Current packages
+	$html = 
+	'<h3>Current Packages</h3>';
+	if (sizeof($current_packages) > 0) {
+		$html = $html . '<table style="width:100%">
+		<tr>
+		  <th>Package Title</th>
+		  <th>Quantity Remaining</th> 
+		  <th>Book Appointment</th>
+		</tr>';
+		foreach ($current_packages as $current_package) {
+			$title = get_the_title($current_package['package_id']);
+			$quantity_remaining = $current_package['quantity_remaining'];
+			$book_appointment = get_post_permalink($current_package['appointment_id']);
+			$html = $html . 
+			'<tr>
+			<td>' . $title . '</td>
+			<td>' . $quantity_remaining . '</td>
+			<td><a href="' . $book_appointment . '">Click here to book</a></td>
+			</tr>';
+		}
+		$html = $html . '</table>';
+	} else {
+		$html = $html . '<p>No current packages found. You can purchase one <a href="' . get_site_url() . '/massage-appointments">here</a>.</p>';
+	}
+	
+	// Previous packages
+	$html = $html . '<h3>Previous Packages</h3>';
+	if (sizeof($previous_packages) > 0) {
+		$html = $html . '<table style="width:100%">
+		<tr>
+		  <th>Package Title</th>
+		  <th>Quantity Remaining</th> 
+		  <th>Purchase New Package</th>
+		</tr>';
+		foreach ($previous_packages as $previous_package) {
+			$title = get_the_title($previous_package['package_id']);
+			$quantity_remaining = $previous_package['quantity_remaining'];
+			$buy_package = get_post_permalink($previous_package['package_id']);
+			$html = $html . 
+			'<tr>
+			<td>' . $title . '</td>
+			<td>' . $quantity_remaining . '</td>
+			<td><a href="' . $buy_package . '">Click here to purchase</a></td>
+			</tr>';
+		}
+		$html = $html . '</table>';
+	} else {
+		$html = $html . '<p>No previous packages found.</p>';
+	}
+
+
+
+	echo $html;
+}
+

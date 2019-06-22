@@ -1,4 +1,69 @@
-<div class="appointments-plus-admin">
-    <h1 class="title">{{ title }}</h1>
-    <p>{{ info }}</p>
+<div class="package-info" style="width: 40%; float: left;">
+    <h3>Active Packages</h3>
+        {% if current_packages %}
+            <table style="width:100%" border="1">
+                <tr>
+                    <th style="text-align: left;">User Name</th>
+                    <th style="text-align: left;">Package Title</th>
+                    <th style="text-align: left;">Quantity</th>
+                    <th style="text-align: left;">Remaining</th> 
+                </tr>
+                    {% for package in current_packages %}
+                        <tr>
+                            <td>{{ package.user.name }}</td>
+                            <td>{{ package.title }}</td>
+                            <td>{{ package.quantity }}</td>
+                            <td>{{ package.remaining }}</td>
+                        </tr>
+                    {% endfor %}
+            </table>
+        {% else %}
+        <p>No current packages found</p>
+        {% endif %}
+        <hr>
+    <h3>Fully Used Packages</h3>
+        {% if previous_packages %}
+            <table style="width:100%" border="1">
+                <tr>
+                    <th style="text-align: left;">User Name</th>
+                    <th style="text-align: left;">Package Title</th>
+                    <th style="text-align: left;">Quantity</th>
+                    <th style="text-align: left;">Remaining</th> 
+                </tr>
+                    {% for package in previous_packages %}
+                        <tr>
+                            <td>{{ package.user.name }}</td>
+                            <td>{{ package.title }}</td>
+                            <td>{{ package.quantity }}</td>
+                            <td>{{ package.remaining }}</td>
+                        </tr>
+                    {% endfor %}
+            </table>
+        {% endif %}
 </div>
+<div class="package-modify" style="width: 45%; float: left; margin-left: 1rem; padding-left: 1rem; border-left: solid 1px lightgray;">
+    <h3>Add a package to a user</h3>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="package-add">
+    <input list="users" id="user-select" placeholder="Select customer">
+    <datalist id="users">
+        {% for user in users %}
+            <option data-value="{{ user.id }}" value="{{ user.name }}">
+        {% endfor %}
+    </datalist>
+    <input list="packages" id="package-select" placeholder="Select package">
+    <datalist id="packages">
+        {% for package in packages %}
+            <option data-value="{{ package.id }}" value="{{ package.title }}">
+        {% endfor %}
+    </datalist>  
+    <input id="quantity-select" placeholder="# already used">
+    <button onclick="addUserPackage()">Add</button>
+    </div>
+</div>
+
+<script>
+    function addUserPackage() {
+        alert('Sorry, adding packages here is not working just yet! Stay tuned...');
+    }
+</script>
