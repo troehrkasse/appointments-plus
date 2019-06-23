@@ -2,6 +2,7 @@
 
 define('PACKAGES_URL', trailingslashit(str_replace(WP_CONTENT_DIR, WP_CONTENT_URL, dirname(__FILE__))));
 define('PACKAGES_DIR', trailingslashit(dirname(__FILE__)));
+if(!defined('PACKAGES_VER')) define('PACKAGES_VER',  '1.0.0' );
 
 /**
  * Include settings and functions files
@@ -76,9 +77,10 @@ class Packages
         endforeach;
     }
 
-    public function wp_enqueue_scripts()
+    public function wp_admin_enqueue_scripts()
     {
-        //
+		wp_register_script('packages-admin', trailingslashit(PACKAGES_URL) . "assets/js/admin.js", array(), PACKAGES_VER, false);
+		wp_enqueue_script('packages-admin', trailingslashit(PACKAGES_URL) . "assets/js/admin.js");
     }
 
     /**
@@ -214,11 +216,12 @@ class Packages
 			'Package Tracking',
 			'manage_options',
 			'appointments-plus-plugin-admin-menu',
-			'render_appointments_plus_admin_menu',
+			array(&$this, 'render_appointments_plus_admin_menu'),
 			'dashicons-admin-tools',
 			58
 		);
 	}
+
 	public function render_appointments_plus_admin_menu(){
 		// Build data on current and previous packages for all users
 		$users_objects = get_users();
@@ -496,7 +499,7 @@ class Packages
     {
         add_filter('timber_context', array(&$this, 'add_to_timber_context'), 60);
         add_action('rest_api_init', array(&$this, 'bootstrap_api'), 60);
-		add_action('wp_enqueue_scripts', array(&$this, 'wp_enqueue_scripts'), 60);
+		add_action('admin_enqueue_scripts', array(&$this, 'wp_admin_enqueue_scripts'), 60);
 		
 		/* 
 		 * Add new product type to Woocommerce. 

@@ -39,6 +39,8 @@
                         </tr>
                     {% endfor %}
             </table>
+        {% else %}
+        <p>No current packages found</p>
         {% endif %}
 </div>
 <div class="package-modify" style="width: 45%; float: left; margin-left: 1rem; padding-left: 1rem; border-left: solid 1px lightgray;">
@@ -48,22 +50,16 @@
     <input list="users" id="user-select" placeholder="Select customer">
     <datalist id="users">
         {% for user in users %}
-            <option data-value="{{ user.id }}" value="{{ user.name }}">
+            <option value="{{ user.id }}">{{ user.name }}</option>
         {% endfor %}
     </datalist>
     <input list="packages" id="package-select" placeholder="Select package">
     <datalist id="packages">
         {% for package in packages %}
-            <option data-value="{{ package.id }}" value="{{ package.title }}">
+            <option value="{{ package.id }}">{{ package.title }}</option>
         {% endfor %}
     </datalist>  
-    <input id="quantity-select" placeholder="# already used">
+    <input id="quantity-select" placeholder="Quantity remaining">
     <button onclick="addUserPackage()">Add</button>
     </div>
 </div>
-
-<script>
-    function addUserPackage() {
-        alert('Sorry, adding packages here is not working just yet! Stay tuned...');
-    }
-</script>
