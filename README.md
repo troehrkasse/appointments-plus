@@ -10,3 +10,19 @@ Providing new feature enhancements such as:
  - New Product type of "appointment package". Select an appointable product type and package size.
  - New customer account page for package tracking.
  - New admin page for package tracking and adding packages to customers.
+
+**Webhooks**
+
+*Webhooks registered with ScheduleOnce*
+`
+{
+  "object": "webhook",
+  "id": "WHK-L7GEBZ0D4C",
+  "name": "All Events",
+  "url": "https://self-transformations.com/?rest_route=/appointments/booking-event",
+  "events": [
+    "booking"
+  ],
+  "creation_time": "2019-07-19T16:15:29.760Z"
+}
+`
