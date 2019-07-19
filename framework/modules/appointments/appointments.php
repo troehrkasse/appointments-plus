@@ -199,14 +199,72 @@ class Appointments
 	}
 
 	public function render_appointments_admin_menu(){
-		
+        // Get all appointments, past and future
+        $all_appointments = get_posts([
+			'post_type'		=>	'appointment',
+			'post_status'	=>	'publish',
+			'numberposts'	=>	-1
+		]);
+        // Split into current (upcoming) and previous
+        $current_appointments = [];
+        $previous_appointments = [];
+        foreach ($all_appointments as $appointment) {
+            $appointment_id = $appointment->ID;
+            $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
+            if ($appointment_data['status'] == 'Scheduled') {
+                $current_appointments[] = $this->extract_appointment_details_for_admin($appointment_id, $appointment_data);
+            } else {
+                $previous_appointments[] = $this->extract_appointment_details_for_admin($appointment_id, $appointment_data);
+            }
+        }
+
+        // Populate list of user names and IDs, used for assigning appointments
+        $users_objects = get_users();
+        $users = [];
+        foreach ($users_objects as $user) {
+            $users[] = [
+				'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
+				'id'		=>	$user->ID
+			];
+        }
+
+        // Get list of appointment products, used for assigning appointments
+        $appointment_products = wc_get_products([
+			'type'		=>	'appointment',
+			'return' 	=> 'ids'
+        ]);
+        $appointments = [];
+        foreach ($appointment_products as $product) {
+            $appointments[] = [
+                'title' =>  get_the_title($product),
+                'id'    =>  $product
+            ];
+        }
 
 		// Add all data to context for the page and render it
 		$context = [
-			'content'		=>	'here is some test content'
-		];
-		Timber::render('appointments.twig', $context);
-	}
+			'current_appointments'	=>	$current_appointments,
+			'previous_appointments'	=>	$previous_appointments,
+			'users'					=>	$users,
+			'appointments'			=>	$appointments
+        ];
+
+		Timber::render('appointment-tracking.twig', $context);
+    }
+    
+    private function extract_appointment_details_for_admin($appointment_id, $appointment_data) {
+        $customer_data = get_post_meta($appointment_id, '_customer_data', true);
+        $payment_status = get_post_meta($appointment_id, '_payment_status', true);
+        $appointment_date = date("F j, Y, g:i a", strtotime($appointment_data['date_and_time']));
+        return [
+            'user'  =>  [
+                'name'      =>  $customer_data['name'],
+            ],
+            'title'             =>  get_the_title($appointment_id),
+            'date'              =>  $appointment_date,
+            'payment_status'    =>  $payment_status
+        ];
+    }
 
 	/* Add My Appointments menu to Woocommerce account page */
 	public function appointments_menu_items ( $items ) {
@@ -270,7 +328,7 @@ class Appointments
     /* Update the appointment status in the system */
     public function post_checkout_update_appointment($order_id) {
         $order = wc_get_order($order_id);
-        $user = $order->get_user_id();
+        $user_id = $order->get_user_id();
         $line_items = $order->get_items();
 
         foreach($line_items as $line_item) {
@@ -280,74 +338,34 @@ class Appointments
             if ($product_type == 'appointment') {
                 $title = $product->get_title();
                 // Attempt to find appointment already associated with user
-                $maybe_appointment = get_posts([
-                    'post_type'     =>  'appointment',
-                    'post_author'   =>  $user,
-                    'post_title'    =>  $title,
-                    'post_status'   =>  'publish',
-                    'date_query'    => [
-                        'column'  => 'post_date',
-                        'after'   => '- 1 days'
-                    ]
-                ]);
-
+                $maybe_appointment = $this->get_appointment_for_user_by_id($user_id, $title);
                 if ($maybe_appointment) {
                     $appointment_id = $maybe_appointment[0]->ID;
                     // Update the post
                     $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
                     $appointment_data['order_id'] = $order_id;
                     if ($order->get_payment_method() == 'cod' ) {
-                        // Check for package for this user
-                        $maybe_packages = get_posts([
-                            'post_type'     =>  'package',
-                            'post_author'   =>  $user,
-                            'meta_query'    =>  [
-                                [
-                                    'key'       =>  '_appointment_product_id',
-                                    'value'     =>  $product_id
-                                ]
-                            ]
-                        ]);
+                        /**
+                         * Cash on Delivery can be either pay on arrival or pay with package
+                         * First, check for packages for the user
+                         */
+                        $maybe_packages = $this->get_packages_for_user($user_id, $product_id);
                         if ($maybe_packages) {
-                            $consumed = false;
-                            foreach ($maybe_packages as $package) {
-                                $remaining = intval(get_post_meta($package->ID, '_package_quantity_remaining', true));
-                                if ($remaining > 0) {
-                                    $consumed = true;
-                                    $remaining -= 1;
-                                    $appointment_data['payment_status'] = 'Paid with package';
-                                    break;
-                                }
+                            $consumed = $this->consume_package_slot($maybe_packages);
+                            if ($consumed) {
+                                update_post_meta($appointment_id, '_payment_status', 'paid with package');
+                            } else {
+                                update_post_meta($appointment_id, '_payment_status', 'pay on arrival');
                             }
-                            if (!$consumed) {
-                                $appointment_data['payment_status'] = 'Pay on arrival';
-                            }
-                            update_post_meta($appointment_id, '_appointment_data', $appointment_data);
+                        } else {
+                            update_post_meta($appointment_id, '_payment_status', 'pay on arrival');
                         }
+                        update_post_meta($appointment_id, '_appointment_data', $appointment_data);
                     }
-                    //!Kint::dump($appointment_data); die();
                 } else {
                     // We didn't find it, which means the post wasn't associated with user yet. Have to search meta data
-                    $user_object = get_user_by('id', $user);
-                    $maybe_appointment = get_posts([
-                        'post_type'     =>  'appointment',
-                        'post_title'    =>  $title,
-                        'post_status'   =>  'publish',
-                        'meta_query'    =>  [
-                            [
-                                'key'       =>  '_appointment_identifier',
-                                'value'     =>  $title
-                            ],
-                            [
-                                'key'       =>  '_customer_email',
-                                'value'     =>  $user_object->email
-                            ]
-                        ],
-                        'date_query'    => [
-                            'column'  => 'post_date',
-                            'after'   => '- 1 days'
-                        ]
-                    ]);
+                    $user_object = get_user_by('id', $user_id);
+                    $maybe_appointment = $this->get_appointment_for_user_by_meta($title, $user_object->user_email);
                     if ($maybe_appointment) {
                         $appointment_id = $maybe_appointment[0]->ID;
                         // Update the post
@@ -355,46 +373,143 @@ class Appointments
                         $appointment_data['order_id'] = $order_id;
                         if ($order->get_payment_method() == 'cod' ) {
                             // Check for package for this user
-                            $maybe_packages = get_posts([
-                                'post_type'     =>  'package',
-                                'post_author'   =>  $user,
-                                'meta_query'    =>  [
-                                    [
-                                        'key'       =>  '_appointment_product_id',
-                                        'value'     =>  $product_id
-                                    ]
-                                ]
-                            ]);
+                            $maybe_packages = $this->get_packages_for_user($user_id, $product_id);
                             if ($maybe_packages) {
-                                $consumed = false;
-                                foreach ($maybe_packages as $package) {
-                                    $remaining = intval(get_post_meta($package->ID, '_package_quantity_remaining', true));
-                                    if ($remaining > 0) {
-                                        $consumed = true;
-                                        $remaining -= 1;
-                                        $appointment_data['payment_status'] = 'Paid with package';
-                                        break;
-                                    }
+                                $consumed = $this->consume_package_slot($maybe_packages);
+                                if ($consumed) {
+                                    update_post_meta($appointment_id, '_payment_status', 'paid with package');
+                                } else {
+                                    update_post_meta($appointment_id, '_payment_status', 'pay on arrival');
                                 }
-                                if (!$consumed) {
-                                    $appointment_data['payment_status'] = 'Pay on arrival';
-                                }
-                                wp_update_post([
-                                    'ID'            =>  $appointment_id,
-                                    'post_author'   =>  $user
-                                ]);
-                                update_post_meta($appointment_id, '_appointment_data', $appointment_data);
+                            } else {
+                                update_post_meta($appointment_id, '_payment_status', 'pay on arrival');
+
                             }
+                            update_post_meta($appointment_id, '_appointment_data', $appointment_data);
+                        } else {
+                            // Payment method can either be cod or Stripe
+                            $appointment_data['payment_status'] = 'paid';
+                            update_post_meta($appointment_id, '_appointment_data', $appointment_data);
                         }
-                        //!Kint::dump($appointment_data); die();
+                        // Update ownership of the appointment post
+                        wp_update_post([
+                            'ID'            =>  $appointment_id,
+                            'post_author'        =>  $user_id
+                        ]); 
                     } else {
                         // Could not find the appointment!
-                        error_log('User ' . $user . ' scheduled an appointment but it failed to update in Wordpress. Order number ' . $order_id);
+                        error_log('User ' . $user_id . ' scheduled an appointment but it failed to update in Wordpress. Order number ' . $order_id);
                     }
                 }
             }
         }
     }
+
+    /* Apply packages and return whether or not a package slot was used */
+    private function consume_package_slot($maybe_packages) {
+        $consumed = false;
+        foreach ($maybe_packages as $package) {
+            $package_id = $package->ID;
+            $remaining = intval(get_post_meta($package_id, '_package_quantity_remaining', true));
+            if ($remaining > 0) {
+                $consumed = true;
+                if ($remaining == 1) {
+                    // Package consumed!
+                    update_post_meta($package_id, '_package_quantity_remaining', 0);
+                    update_post_meta($package_id, '_package_active', false);
+                } else {
+                    // Subtract one from the remaining quantity
+                    update_post_meta($package_id, '_package_quantity_remaining', $remaining - 1);
+                }
+                break;
+            }
+        }
+        return $consumed;
+    }
+
+    /* Get packages for a certain for a user by ID */
+    private function get_packages_for_user($user_id, $product_id) {
+        $maybe_packages = get_posts([
+            'post_type'     =>  'package',
+            'post_author'   =>  $user_id,
+            'meta_query'    =>  [
+                [
+                    'key'       =>  '_appointment_product_id',
+                    'value'     =>  $product_id
+                ],
+                [
+                    'key'       =>  '_package_active',
+                    'value'     =>  true
+                ]
+            ]
+        ]);
+
+        if (sizeof($maybe_packages) > 0) {
+            return $maybe_packages;
+        } else {
+            return false;
+        }
+    }
+
+    /* Try to get appointments for a user by meta query */
+    private function get_appointment_for_user_by_meta($title, $email) {
+        $maybe_appointment = get_posts([
+            'post_type'     =>  'appointment',
+            'post_title'    =>  $title,
+            'post_status'   =>  'publish',
+            'meta_query'    =>  [
+                [
+                    'key'       =>  '_appointment_identifier',
+                    'value'     =>  $title
+                ],
+                [
+                    'key'       =>  '_customer_email',
+                    'value'     =>  $email
+                ],
+                [
+                    'key'       =>  '_payment_status',
+                    'value'     =>  'unpaid'
+                ]
+            ],
+            'date_query'    => [
+                'column'  => 'post_date',
+                'after'   => '- 1 days'
+            ]
+        ]);
+
+        if (sizeof($maybe_appointment) > 0) {
+            return $maybe_appointment;
+        } else {
+            return false;
+        }
+    }
+
+    /* Try to get appointments for a user by ID */
+    private function get_appointment_for_user_by_id($user_id, $title) {
+        $maybe_appointment = get_posts([
+            'post_type'     =>  'appointment',
+            'author'        =>  $user_id,
+            'post_title'    =>  $title,
+            'post_status'   =>  'publish',
+            'date_query'    => [
+                'column'  => 'post_date',
+                'after'   => '- 1 days'
+            ],
+            'meta_query'    =>  [
+                [
+                    'key'       =>  '_payment_status',
+                    'value'     =>  'unpaid'
+                ]
+            ]
+        ]);
+
+        if (sizeof($maybe_appointment) > 0) {
+            return $maybe_appointment;
+        } else {
+            return false;
+        }
+    }
+
 
     protected function init()
     {

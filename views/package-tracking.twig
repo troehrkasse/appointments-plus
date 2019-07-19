@@ -3,7 +3,7 @@
         {% if current_packages %}
             <table style="width:100%" border="1">
                 <tr>
-                    <th style="text-align: left;">User Name</th>
+                    <th style="text-align: left;">Client</th>
                     <th style="text-align: left;">Package Title</th>
                     <th style="text-align: left;">Quantity</th>
                     <th style="text-align: left;">Remaining</th> 
@@ -25,7 +25,7 @@
         {% if previous_packages %}
             <table style="width:100%" border="1">
                 <tr>
-                    <th style="text-align: left;">User Name</th>
+                    <th style="text-align: left;">Client</th>
                     <th style="text-align: left;">Package Title</th>
                     <th style="text-align: left;">Quantity</th>
                     <th style="text-align: left;">Remaining</th> 
@@ -47,19 +47,23 @@
     <h3>Add a package to a user</h3>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <div class="package-add">
-    <input list="users" id="user-select" placeholder="Select customer">
-    <datalist id="users">
-        {% for user in users %}
-            <option value="{{ user.id }}">{{ user.name }}</option>
-        {% endfor %}
-    </datalist>
-    <input list="packages" id="package-select" placeholder="Select package">
-    <datalist id="packages">
-        {% for package in packages %}
-            <option value="{{ package.id }}">{{ package.title }}</option>
-        {% endfor %}
-    </datalist>  
-    <input id="quantity-select" placeholder="Quantity remaining">
-    <button onclick="addUserPackage()">Add</button>
+        <input list="users" id="user-select" placeholder="Select customer">
+        <datalist id="users">
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.name }}</option>
+            {% endfor %}
+        </datalist>
+        <input list="packages" id="package-select" placeholder="Select package">
+        <datalist id="packages">
+            {% for package in packages %}
+                <option value="{{ package.id }}">{{ package.title }}</option>
+            {% endfor %}
+        </datalist>  
+        <input id="quantity-select" placeholder="Quantity remaining">
+        <button onclick="addUserPackage()">Add</button>
+    </div>
+    <hr>
+    <div class="package-modify">
+        <h3>Package modification - coming soon!</h3>
     </div>
 </div>

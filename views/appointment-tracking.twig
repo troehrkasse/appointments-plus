@@ -1,0 +1,71 @@
+<div class="appointment-info" style="width: 40%; float: left;">
+    <h3>Upcoming Appointments</h3>
+        {% if current_appointments %}
+            <table style="width:100%" border="1">
+                <tr>
+                    <th style="text-align: left;">Client</th>
+                    <th style="text-align: left;">Appointment Type</th>
+                    <th style="text-align: left;">Date</th>
+                    <th style="text-align: left;">Payment Status</th> 
+                </tr>
+                    {% for appointment in current_appointments %}
+                        <tr>
+                            <td>{{ appointment.user.name }}</td>
+                            <td>{{ appointment.title }}</td>
+                            <td>{{ appointment.date }}</td>
+                            <td>{{ appointment.payment_status }}</td>
+                        </tr>
+                    {% endfor %}
+            </table>
+        {% else %}
+        <p>No current appointments found</p>
+        {% endif %}
+        <hr>
+    <h3>Past Appointments</h3>
+        {% if previous_appointments %}
+            <table style="width:100%" border="1">
+                <tr>
+                    <th style="text-align: left;">Client</th>
+                    <th style="text-align: left;">Appointment Type</th>
+                    <th style="text-align: left;">Date</th>
+                    <th style="text-align: left;">Payment Status</th> 
+                </tr>
+                    {% for appointment in previous_appointments %}
+                        <tr>
+                            <td>{{ appointment.user.name }}</td>
+                            <td>{{ appointment.title }}</td>
+                            <td>{{ appointment.date }}</td>
+                            <td>{{ appointment.payment_status }}</td>
+                        </tr>
+                    {% endfor %}
+            </table>
+        {% else %}
+        <p>No current appointments found</p>
+        {% endif %}
+</div>
+<div class="appointment-add" style="width: 45%; float: left; margin-left: 1rem; padding-left: 1rem; border-left: solid 1px lightgray;">
+    <h3>Add a appointment to a user</h3>
+    <p>Note: You should only use this function to add an appointment that already exists in ScheduleOnce, 
+    but is missing here in Wordpress. If the appointment doesn't exist yet in ScheduleOnce, add it there.</p>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="appointment-add">
+        <input list="users" id="user-select" placeholder="Select customer">
+        <datalist id="users">
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.name }}</option>
+            {% endfor %}
+        </datalist>
+        <input list="appointments" id="appointment-select" placeholder="Select appointment">
+        <datalist id="appointments">
+            {% for appointment in appointments %}
+                <option value="{{ appointment.id }}">{{ appointment.title }}</option>
+            {% endfor %}
+        </datalist>  
+        <input id="date-select" type="datetime-local" placeholder="Quantity remaining">
+        <button onclick="addUserAppointment()">Add</button>
+    </div>
+    <hr>
+    <div class="appointment-modify">
+        <h3>Appointment modification - coming soon!</h3>
+    </div>
+</div>

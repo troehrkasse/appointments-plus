@@ -14,11 +14,14 @@ function addUserPackage() {
             "quantity_remaining": parseInt(quantity_remaining)
         };
         jQuery.post('https://self-transformations.com/?rest_route=/packages/add', request, function (response) {
-            if(response !== null){
+            console.log(response);
+            console.log('what the fuck is going on here');
+            if(response == true){
                 alert('Successfully added package to user! This page will now refresh.');
                 location.reload(true);
             }else{
                 alert("an error occurred! Please contact Tyson and let him know something is not working.");
+                console.log(response);
             }
         });
     }

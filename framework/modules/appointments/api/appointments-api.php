@@ -91,14 +91,13 @@ class Appointments_API extends WP_REST_Controller{
                 'subject'                   =>  $event['data']['subject'],
                 'status'                    =>  $event['data']['status'],
                 'staff'                     =>  $event['data']['owner'],
-                'identifier'                =>  $identifier,
                 'date_and_time'             =>  $event['data']['starting_time'],
                 'product_id'                =>  $product->ID,
                 'order_id'                  =>  null,
-                'payment_status'            =>  'unpaid', // unpaid or paid
                 'cancel_reschedule_link'    =>  $event['data']['cancel_reschedule_link']
             ],
             '_appointment_identifier'       =>  $identifier,
+            '_payment_status'                =>  'unpaid', // unpaid or paid or paid with package
             '_customer_email'               =>  $email,
             '_customer_data'    =>  [
                 'name'  =>  $event['data']['form_submission']['name'],

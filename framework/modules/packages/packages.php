@@ -12,6 +12,8 @@ include_once(PACKAGES_DIR . 'functions.php');
 
 /**
  * Module primary driver class
+ * 
+ * Packages are a custom post type used to track packages of appointments purchased by clients. 
  *
  */
 class Packages
@@ -224,41 +226,49 @@ class Packages
 
 	public function render_packages_admin_menu(){
 		// Build data on current and previous packages for all users
-		$users_objects = get_users();
+		$all_packages = get_posts([
+			'post_type'		=>	'package',
+			'post_status'	=>	'publish',
+			'numberposts'	=>	-1
+		]);
+		//!Kint::dump($all_packages); die();
 		$current_packages = [];
 		$previous_packages = [];
+		foreach ($all_packages as $package) {
+			$package_id = $package->ID;
+			$package_title = get_the_title($package_id);
+			$package_active = get_post_meta($package->ID, '_package_active', true);
+			if ($package_active) {
+				$current_packages[] = [
+					'user'	=>	[
+						'name'	=>	get_post_meta($package_id, '_user_name', true),
+						'id'	=>	get_post_meta($package_id, '_user_id', true)
+					],
+					'title'		=>	$package_title,
+					'quantity'	=>	get_post_meta($package_id, '_package_quantity', true),
+					'remaining'	=>	get_post_meta($package_id, '_package_quantity_remaining', true)
+				];
+			} else {
+				$previous_packages[] = [
+					'user'	=>	[
+						'name'	=>	get_post_meta($package_id, '_user_name', true),
+						'id'	=>	get_post_meta($package_id, '_user_id', true)
+					],
+					'title'		=>	$package_title,
+					'quantity'	=>	get_post_meta($package_id, '_package_quantity', true),
+					'remaining'	=>	get_post_meta($package_id, '_package_quantity_remaining', true)
+				];
+			}
+		}
+
+		/* Populate list of user names and IDs, for assigning new packages in the admin screen */
+		$users_objects = get_users();
 		$users = [];
 		foreach ($users_objects as $user) {
 			$users[] = [
 				'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
 				'id'		=>	$user->ID
 			];
-			$user_packages = is_array(get_user_meta($user->ID, 'appointment_packages', true)) ? get_user_meta($user->ID, 'appointment_packages', true) : false;
-			if ($user_packages) {
-				foreach ($user_packages as $package) {
-					if ($package['quantity_remaining'] > 0) {
-						$current_packages[] = [
-							'user'		=>	[
-								'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
-								'id'		=>	$user->ID
-							],
-							'title'		=>	get_the_title($package['package_id']),
-							'quantity'	=>	$package['quantity'],
-							'remaining'	=>	$package['quantity_remaining'],
-						];
-					} else {
-						$previous_packages[] = [
-							'user'		=>	[
-								'name'		=>	get_user_meta($user->ID, 'first_name', true) . ' ' . get_user_meta($user->ID, 'last_name', true),
-								'id'		=>	$user->ID
-							],
-							'title'		=>	get_the_title($package['package_id']),
-							'quantity'	=>	$package['quantity'],
-							'remaining'	=>	$package['quantity_remaining'],
-						];
-					}
-				}
-			}
 		} 
 
 		// Populate list of Appointment Packages
@@ -277,8 +287,8 @@ class Packages
 		// Add all data to context for the page and render it
 		$context = [
 			'current_packages'		=>	$current_packages,
-			'previous_packages'	=>	$previous_packages,
-			'users'				=>	$users,
+			'previous_packages'		=>	$previous_packages,
+			'users'					=>	$users,
 			'packages'				=>	$packages
 		];
 		Timber::render('package-tracking.twig', $context);
@@ -295,7 +305,8 @@ class Packages
 	public function add_package_to_user($order_id) {
 		// Get info for the order, the user, and line items in the order
 		$order = wc_get_order($order_id);
-		$user = $order->get_user_id();
+		$user_id = $order->get_user_id();
+		$user_name = get_userdata($user_id)->first_name . ' ' . get_userdata($user_id)->last_name;
 		$line_items = $order->get_items();
 
 
@@ -307,13 +318,17 @@ class Packages
 				// Add the package to the user
 				// Package data that will be saved as meta on the new post
 				$quantity = intval(get_post_meta($product_id, '_appointment_package_quantity', true));
+				// TODO update meta to all use _package
 				$meta = [
 					'_package_product_id'			=>	$product_id, // The Woocommerce package product ID
 					'_appointment_product_id'		=>	intval(get_post_meta($product_id, '_appointment_package_type', true)), // The Woocommerce appointment product that this is a bundle of
-					'_order_id'						=>	$order,
+					'_order_id'						=>	$order_id,
 					'_package_quantity'				=>	$quantity,
-					'_package_quantity_remaiing'	=>	$quantity,
-					'_user_id'						=>	$user
+					'_package_quantity_remaining'	=>	$quantity,
+					'_package_active'				=>	true, // sets to false when used up
+					'_user_id'						=>	$user_id,
+					'_user_name'					=>	$user_name,
+					'_appointment_usage'			=>	[] // Will track when appointments are used
 				];
 				// Args for creating new Package
 				$args = [
@@ -321,12 +336,12 @@ class Packages
 					'post_status'		=>	'publish',
 					'meta_input'		=>	$meta,
 					'post_type'			=>	'package',
-					'post_author'		=>	$user
+					'post_author'		=>	$user_id
 				];
 
 				$new_package = wp_insert_post($args);
 				if (!$new_package) {
-					error_log('Package save failure for order ' . $order_id . ' for user ' . $user);
+					error_log('Package save failure for order ' . $order_id . ' for user ' . $user_id);
 				}
 				
 			}
@@ -344,19 +359,26 @@ class Packages
 	}
 	
 	public function packages_endpoint_content() {
-		$user = get_current_user_id();
-		$packages = is_array(get_user_meta($user, 'appointment_packages', true)) ? get_user_meta($user, 'appointment_packages', true) : false;
+		$user_id = get_current_user_id();
+		$all_packages = get_posts([
+			'post_type'		=>	'package',
+			'post_status'	=>	'publish',
+			'numberposts'	=>	-1,
+			'author'		=>	$user_id
+		]);
 		$current_packages = [];
 		$previous_packages = [];
-		if ($packages) {
-			foreach ($packages as $package) {
-				if ($package['quantity_remaining'] == 0) {
-					$previous_packages[] = $package;
-				} else {
+		if (sizeof($all_packages) > 0) {
+			foreach ($all_packages as $package) {
+				$package_active = get_post_meta($package->ID, '_package_active', true);
+				if ($package_active) {
 					$current_packages[] = $package;
+				} else {
+					$previous_packages[] = $package;
 				}
 			}
 		}
+		
 		// Current packages
 		$html = 
 		'<h3>Current Packages</h3>';
@@ -368,9 +390,10 @@ class Packages
 			<th>Book Appointment</th>
 			</tr>';
 			foreach ($current_packages as $current_package) {
-				$title = get_the_title($current_package['package_id']);
-				$quantity_remaining = $current_package['quantity_remaining'];
-				$book_appointment = get_post_permalink($current_package['appointment_id']);
+				$current_package_id = $current_package->ID;
+				$title = $current_package->post_title;
+				$quantity_remaining = get_post_meta($current_package_id, '_package_quantity_remaining', true);
+				$book_appointment = site_url() . '/massage-appointments';
 				$html = $html . 
 				'<tr>
 				<td>' . $title . '</td>
@@ -393,9 +416,10 @@ class Packages
 			<th>Purchase New Package</th>
 			</tr>';
 			foreach ($previous_packages as $previous_package) {
-				$title = get_the_title($previous_package['package_id']);
-				$quantity_remaining = $previous_package['quantity_remaining'];
-				$buy_package = get_post_permalink($previous_package['package_id']);
+				$previous_package_id = $previous_package->ID;
+				$title = $previous_package->post_title;
+				$quantity_remaining = '0';
+				$buy_package = get_post_permalink(get_post_meta($previous_package_id, '_package_product_id', true));
 				$html = $html . 
 				'<tr>
 				<td>' . $title . '</td>
