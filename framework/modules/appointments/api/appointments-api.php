@@ -65,6 +65,37 @@ class Appointments_API extends WP_REST_Controller{
         }
         return new WP_REST_Response($response, 200);
     }
+
+    /**
+     * Updates the time of an appointment based on event data.
+     */
+    public function handle_booking_rescheduled_event($event) {
+        $external_id = $event['id']; 
+        $maybe_appointment = get_posts([
+            'post_type'     =>  'appointment',
+            'post_status'   =>  'publish',
+            'numberposts'   =>  1,
+            'meta_query'    =>  [
+                [
+                    'key'       =>  '_appointment_id',
+                    'value'     =>  $external_id
+                ]
+            ]
+        ]);
+
+        if (sizeof($maybe_appointment) > 0) {
+            $appointment_id = $maybe_appointment[0]->ID;
+            $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
+            $appointment_data['date_and_time'] = $event['data']['starting_time'];
+            update_post_meta($appointment_id, '_appointment_data', $appointment_data);
+            return true;
+        }
+
+        error_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
+        error_log($event);
+
+        return false;
+    }
     
     /**
      * Creates a new Appointment based on event data.
@@ -96,7 +127,8 @@ class Appointments_API extends WP_REST_Controller{
                 'order_id'                  =>  null,
                 'cancel_reschedule_link'    =>  $event['data']['cancel_reschedule_link']
             ],
-            '_appointment_identifier'       =>  $identifier,
+            '_appointment_id'               =>  $event['id'], // Unique identifier for ScheduleOnce system
+            '_appointment_identifier'       =>  $identifier, // Just the title of the event
             '_payment_status'                =>  'unpaid', // unpaid or paid or paid with package
             '_customer_email'               =>  $email,
             '_customer_data'    =>  [
@@ -118,11 +150,6 @@ class Appointments_API extends WP_REST_Controller{
         
         $new_appointment = wp_insert_post($args);
         return $new_appointment;
-    }
-
-    /* Update an appointment using event data from ScheduleOnce */
-    private function handle_booking_rescheduled_event($event) {
-        return 'so far so good';
     }
 
     /* Update an appointment using event data from ScheduleOnce. May be able to combine with the above function */
