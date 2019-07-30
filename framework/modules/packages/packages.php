@@ -446,6 +446,51 @@ class Packages
         register_post_type($type, $args);
 	}
 
+	public function apply_packages_at_checkout(WC_Cart $cart) {
+		$user_id = get_current_user_id();
+
+		if ($user_id !== 0) {
+			$items = $cart->get_cart();
+			foreach ($items as $item) {
+				if ($item['data']->product_type == "appointment") {
+					$maybe_packages = get_posts([
+						'post_type'		=>	'package',
+						'post_status'	=>	'publish',
+						'numberposts'	=>	-1,
+						'author'		=>	$user_id,
+						'meta_query'	=>	[
+							[
+								'key'		=>	'_package_active',
+								'value'		=>	1
+							],
+							[
+								'key'	=>	'_appointment_product_id',
+								'value'	=>	$item['product_id']
+							]
+						]
+					]);
+
+					/**
+					 * If posts were returned, the user has at least one active package for this appointment type.
+					 * 
+					 * Apply discount.
+					 * 
+					 * Don't need to subtract the package from the user - this happens after checkout. 
+					 */
+					if (sizeof($maybe_packages) > 0) {
+						$price = $item['woo_discount']['original_price'];
+						$cart->add_fee('Prepaid Package Applied', -$price);
+						//!Kint::dump($cart); die();
+					}
+				}
+			}
+		}
+	}
+
+	public function change_place_order_button_text( $button_text ) {
+		return 'Complete Booking';
+	}
+
     protected function init()
     {
         add_filter('timber_context', array(&$this, 'add_to_timber_context'), 60);
@@ -471,7 +516,7 @@ class Packages
 		/* Show add to cart button on appointment package pages */
 		add_action( 'woocommerce_appointment_package_add_to_cart', array(&$this, 'appointment_package_add_to_cart_button') );
 
-		/* Hook into Woocommerce post checkout to apply packages */
+		/* Hook into Woocommerce post checkout to apply packages to user account */
 		add_action('woocommerce_thankyou', array(&$this, 'add_package_to_user'), 10, 1);
 
 		/* Add the Package custom post type to Wordpress */
@@ -481,6 +526,12 @@ class Packages
 		add_filter( 'woocommerce_account_menu_items', array(&$this, 'packages_menu_items'), 10, 1 );
 		add_action( 'init', array(&$this, 'add_packages_endpoint') );
 		add_action( 'woocommerce_account_packages_endpoint', array(&$this, 'packages_endpoint_content') );
+
+		/* Apply packages at checkout */
+		add_filter ('woocommerce_cart_calculate_fees', array(&$this, 'apply_packages_at_checkout') , 10, 3 );
+
+		/* Change the text of the Place Order button */
+		add_filter('woocommerce_order_button_text', array(&$this, 'change_place_order_button_text'));
     }
 }
 Packages::get_instance();

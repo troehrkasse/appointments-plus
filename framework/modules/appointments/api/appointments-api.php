@@ -159,7 +159,35 @@ class Appointments_API extends WP_REST_Controller{
 
     /* Delete an appointment using event data from ScheduleOnce */
     private function handle_booking_canceled_event($event) {
-        return 'so far so good';
+        $external_id = $event['id']; 
+        $maybe_appointment = get_posts([
+            'post_type'     =>  'appointment',
+            'post_status'   =>  'publish',
+            'numberposts'   =>  1,
+            'meta_query'    =>  [
+                [
+                    'key'       =>  '_appointment_id',
+                    'value'     =>  $external_id
+                ]
+            ]
+        ]);
+
+        if (sizeof($maybe_appointment) > 0) {
+            $appointment_id = $maybe_appointment[0]->ID;
+            $deleted = wp_delete_post($appointment_id, true);
+            if ($deleted !== false) {
+                return true;
+            } else {
+                error_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
+                error_log($event);
+                return false;
+            }
+        }
+
+        error_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
+        error_log($event);
+
+        return false;
     }
 
     /* Mark an appointment as completed using event data from ScheduleOnce */
