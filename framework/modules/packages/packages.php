@@ -487,8 +487,23 @@ class Packages
 		}
 	}
 
+	/**
+	 * Change the text of the Place Order button at checkout
+	 */
 	public function change_place_order_button_text( $button_text ) {
 		return 'Complete Booking';
+	}
+
+	/**
+	 * Disable the new order email if the price was $0
+	 */
+	public function disable_new_order_email_for_packages($recipient, $order) {
+		$page = $_GET['page'] = isset( $_GET['page'] ) ? $_GET['page'] : '';
+		if ( 'wc-settings' === $page ) {
+			return $recipient; 
+		}
+		if( $order->get_total() === '0.00' ) $recipient = '';
+		return $recipient;
 	}
 
     protected function init()
@@ -532,6 +547,11 @@ class Packages
 
 		/* Change the text of the Place Order button */
 		add_filter('woocommerce_order_button_text', array(&$this, 'change_place_order_button_text'));
+
+		/* Disable the order email if the customer used a package and the price is free */
+		add_filter('woocommerce_email_recipient_customer_completed_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
+		add_filter('woocommerce_email_recipient_customer_processing_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
+		add_filter('woocommerce_email_recipient_customer_new_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
     }
 }
 Packages::get_instance();
