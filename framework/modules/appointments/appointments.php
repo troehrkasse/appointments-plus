@@ -510,6 +510,25 @@ class Appointments
         }
     }
 
+    /**
+     * Generate a customized message to display above the booking form. 
+     */
+    public function generate_booking_form_message( $atts ) {
+        $maybe_user = is_user_logged_in(); // Will return 0 if no logged in user
+        $message = '';
+        if ($maybe_user) {
+            // Generate message for logged in user
+            $message = 'Standard prices are displayed on this booking form. If you have a prepaid package, it will automatically be 
+            applied at checkout.';
+        } else {
+            $message = 'Returning client? <a href="' . site_url() . '/my-account/">Log in</a> first for a faster checkout experience!
+            <br>
+            If you are a new client, you can <a href="' . site_url() . '/my-account/">create an account</a> to receive a discount on 
+            your first 60 or 90 minute massage.';
+        }
+        return $message;
+    }
+
 
     protected function init()
     {
@@ -542,7 +561,10 @@ class Appointments
         add_action('init', array(&$this, 'register_appointment_post_type'));
 
         /* Hook into Woocommerce post checkout to update appointment status */
-		add_action('woocommerce_thankyou', array(&$this, 'post_checkout_update_appointment'), 10, 1);
+        add_action('woocommerce_thankyou', array(&$this, 'post_checkout_update_appointment'), 10, 1);
+        
+        /* Display a customized message for customers or guests on the booking pages */
+        add_shortcode( 'booking_form_message', array(&$this, 'generate_booking_form_message'));
     }
 }
 Appointments::get_instance();
