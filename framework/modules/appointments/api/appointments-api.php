@@ -22,6 +22,7 @@ class Appointments_API extends WP_REST_Controller{
         $this->register_routes();
     }
     public function register_routes(){
+        /* Used for handling all booking events from ScheduleOnce */
         register_rest_route( self::$NAMESPACE, '/booking-event', array(
             array(
                 'methods'             => WP_REST_Server::CREATABLE,

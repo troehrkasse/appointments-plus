@@ -259,6 +259,18 @@ class Appointments_Plus
     public function load_frontend_scripts()
     {
         wp_enqueue_script('appointments_plus-core');
+
+        /* Script to append query string for prefilling booking data on ScheduleOnce forms */
+        global $current_user;
+        $current_user = wp_get_current_user();
+        if ($current_user->id !== 0) {
+            wp_enqueue_script( 'booking-form-script', APPOINTMENTS_PLUS_URI . 'assets/js/booking-form-scripts.js', array( 'jquery' ), '', true );
+            wp_localize_script( 'booking-form-script', 'currentUser', array (
+                'email' => $current_user->user_email,
+                'phone' => strlen(get_user_meta($current_user->id, 'billing_phone', true)) > 0 ? get_user_meta($current_user->id, 'billing_phone', true) : false
+            ) );
+        }
+        
     }
 
     /**
