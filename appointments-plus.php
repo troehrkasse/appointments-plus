@@ -18,6 +18,8 @@ if (!defined('APPOINTMENTS_PLUS_MODULES_BASE')) define('APPOINTMENTS_PLUS_MODULE
 if (!defined('APPOINTMENTS_PLUS_VER')) define('APPOINTMENTS_PLUS_VER', '0.0.1');
 if (!defined('APPOINTMENTS_PLUS_SLUG')) define('APPOINTMENTS_PLUS_SLUG', "appointments_plus");
 
+include_once(APPOINTMENTS_PLUS_DIR . 'functions.php');
+
 
 global $AWESOME_FRAMEWORK;
 global $AWESOME_FRAMEWORK_PLUGIN_FILE_NAME;
