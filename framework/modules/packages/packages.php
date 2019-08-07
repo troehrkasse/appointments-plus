@@ -478,9 +478,8 @@ class Packages
 					 * Don't need to subtract the package from the user - this happens after checkout. 
 					 */
 					if (sizeof($maybe_packages) > 0) {
-						$price = $item['woo_discount']['original_price'];
+						$price = $item['data']->regular_price;
 						$cart->add_fee('Prepaid Package Applied', -$price);
-						//!Kint::dump($cart); die();
 					}
 				}
 			}
