@@ -81,8 +81,8 @@ class Appointments
     public function wp_admin_enqueue_scripts()
     {
         // add admin required scripts here 
-		// wp_register_script('packages-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/admin.js", array(), APPOINTMENTS_VER, false);
-		// wp_enqueue_script('packages-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/admin.js");
+		wp_register_script('appointments-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/appointments-admin.js", array(), APPOINTMENTS_VER, false);
+		wp_enqueue_script('appointments-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/appointments-admin.js");
     }
 
     /**
@@ -281,7 +281,9 @@ class Appointments
         $user = get_current_user_id();
         $appointments = get_posts([
             'author'        => $user,
-            'post_type'     =>  'appointment'
+            'post_type'     =>  'appointment',
+            'orderby'       =>  'date',
+            'order'         =>  'ASC'
             ]);
         $html = '<h3>Appointments</h3>';
         if (sizeof($appointments) > 0) {
@@ -344,7 +346,8 @@ class Appointments
                     // Update the post
                     $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
                     $appointment_data['order_id'] = $order_id;
-                    if ($order->get_payment_method() == 'cod' ) {
+                    if ($order->get_payment_method() == 'cod'  || $order->get_total() == "0.00") {
+                        
                         /**
                          * Cash on Delivery can be either pay on arrival or pay with package
                          * First, check for packages for the user
@@ -371,7 +374,7 @@ class Appointments
                         // Update the post
                         $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
                         $appointment_data['order_id'] = $order_id;
-                        if ($order->get_payment_method() == 'cod' ) {
+                        if ($order->get_payment_method() == 'cod'  || $order->get_total() == "0.00") {
                             // Check for package for this user
                             $maybe_packages = $this->get_packages_for_user($user_id, $product_id);
                             if ($maybe_packages) {

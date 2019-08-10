@@ -1,4 +1,4 @@
-console.log('admin script loaded');
+console.log('admin script for packages loaded');
 // Add new packages to users
 function addUserPackage() {
     let user = document.getElementById("user-select").value;
@@ -14,8 +14,6 @@ function addUserPackage() {
             "quantity_remaining": parseInt(quantity_remaining)
         };
         jQuery.post('https://self-transformations.com/?rest_route=/packages/add', request, function (response) {
-            console.log(response);
-            console.log('what the fuck is going on here');
             if(response == true){
                 alert('Successfully added package to user! This page will now refresh.');
                 location.reload(true);

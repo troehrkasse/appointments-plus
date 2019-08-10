@@ -81,8 +81,8 @@ class Packages
 
     public function wp_admin_enqueue_scripts()
     {
-		wp_register_script('packages-admin', trailingslashit(PACKAGES_URL) . "assets/js/admin.js", array(), PACKAGES_VER, false);
-		wp_enqueue_script('packages-admin', trailingslashit(PACKAGES_URL) . "assets/js/admin.js");
+		wp_register_script('packages-admin', trailingslashit(PACKAGES_URL) . "assets/js/packages-admin.js", array(), PACKAGES_VER, false);
+		wp_enqueue_script('packages-admin', trailingslashit(PACKAGES_URL) . "assets/js/packages-admin.js");
     }
 
     /**

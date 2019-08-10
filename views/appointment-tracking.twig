@@ -61,7 +61,13 @@
                 <option value="{{ appointment.id }}">{{ appointment.title }}</option>
             {% endfor %}
         </datalist>  
-        <input id="date-select" type="datetime-local" placeholder="Quantity remaining">
+        <input id="date-select" type="datetime-local">
+        <input list="statuses" id="status-select" placeholder="Select status">
+        <datalist id="statuses">
+            <option value="paid with package">paid with package</option>
+            <option value="paid">paid</option>
+            <option value="pay on arrival">pay on arrival</option>
+        </datalist>
         <button onclick="addUserAppointment()">Add</button>
     </div>
     <hr>

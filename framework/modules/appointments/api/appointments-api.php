@@ -30,6 +30,27 @@ class Appointments_API extends WP_REST_Controller{
                 'permission_callback' => array( $this, 'appointments_permissions_check' )
             )
         ) );
+
+        // Manually create an appointment from WP Admin
+        register_rest_route( self::$NAMESPACE, '/add', array(
+            array(
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => array( $this, 'create_manual_appointment' ),
+                'permission_callback' => array( $this, 'appointments_permissions_check' )
+            )
+        ) );
+    }
+
+    /**
+     * @param WP_REST_Request $request
+     * 
+     */
+    public function create_manual_appointment( WP_REST_Request $request) {
+        $user_id = $request->get_param('user_id');
+        $appointment_id = $request->get_params('appointment_id');
+        $status = $request->get_params('status');
+        $date = $request->get_params('date');
+        return $params;
     }
     
     /**
