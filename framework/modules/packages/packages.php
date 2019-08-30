@@ -246,7 +246,8 @@ class Packages
 					],
 					'title'		=>	$package_title,
 					'quantity'	=>	get_post_meta($package_id, '_package_quantity', true),
-					'remaining'	=>	get_post_meta($package_id, '_package_quantity_remaining', true)
+					'remaining'	=>	get_post_meta($package_id, '_package_quantity_remaining', true),
+					'id'		=>	$package_id
 				];
 			} else {
 				$previous_packages[] = [
@@ -256,7 +257,8 @@ class Packages
 					],
 					'title'		=>	$package_title,
 					'quantity'	=>	get_post_meta($package_id, '_package_quantity', true),
-					'remaining'	=>	get_post_meta($package_id, '_package_quantity_remaining', true)
+					'remaining'	=>	get_post_meta($package_id, '_package_quantity_remaining', true),
+					'id'		=>	$package_id
 				];
 			}
 		}
@@ -309,12 +311,15 @@ class Packages
 		$user_name = get_userdata($user_id)->first_name . ' ' . get_userdata($user_id)->last_name;
 		$line_items = $order->get_items();
 
+		write_log('checking order ' . $order_id . ' for packages to add to ' . $user_id . ' ' . $user_name);
+
 
 		foreach ($line_items as $line_item) {
 			$product = wc_get_product($line_item->get_product_id());
 			$product_type = $product->get_type();
 			$product_id = $product->get_id();
 			if ($product_type == 'appointment_package') {
+				write_log('package purchase detected: ' . $product_id);
 				// Add the package to the user
 				// Package data that will be saved as meta on the new post
 				$quantity = intval(get_post_meta($product_id, '_appointment_package_quantity', true));
@@ -339,13 +344,19 @@ class Packages
 					'post_author'		=>	$user_id
 				];
 
+				write_log('creating new Package with these args: ');
+				write_log($args);
+
 				$new_package = wp_insert_post($args);
 				if (!$new_package) {
-					error_log('Package save failure for order ' . $order_id . ' for user ' . $user_id);
+					write_log('Package save failure for order ' . $order_id . ' for user ' . $user_id);
+				} else {
+					write_log('new Package successfully created: ' . $new_package);
 				}
 				
 			}
 		}
+		write_log('COMPLETED checking order ' . $order_id . ' for packages to add to ' . $user_id . ' ' . $user_name);
 	}
 
 	/* Add My Packages menu to Woocommerce account page */
@@ -393,7 +404,7 @@ class Packages
 				$current_package_id = $current_package->ID;
 				$title = $current_package->post_title;
 				$quantity_remaining = get_post_meta($current_package_id, '_package_quantity_remaining', true);
-				$book_appointment = site_url() . '/massage-appointments';
+				$book_appointment = site_url() . '/booking';
 				$html = $html . 
 				'<tr>
 				<td>' . $title . '</td>
@@ -403,7 +414,7 @@ class Packages
 			}
 			$html = $html . '</table>';
 		} else {
-			$html = $html . '<p>No current packages found. You can purchase one <a href="' . get_site_url() . '/massage-appointments">here</a>.</p>';
+			$html = $html . '<p>No current packages found. You can purchase one <a href="' . get_site_url() . '/booking">here</a>.</p>';
 		}
 		
 		// Previous packages
@@ -448,11 +459,16 @@ class Packages
 
 	public function apply_packages_at_checkout(WC_Cart $cart) {
 		$user_id = get_current_user_id();
+		
 
 		if ($user_id !== 0) {
+			write_log('starting to apply packages discount at checkout for user ' . $user_id);
 			$items = $cart->get_cart();
 			foreach ($items as $item) {
 				if ($item['data']->product_type == "appointment") {
+					write_log('appointment detected in cart! Attempting to find matching packages for this item: ');
+					write_log($item['product_id']);
+
 					$maybe_packages = get_posts([
 						'post_type'		=>	'package',
 						'post_status'	=>	'publish',
@@ -478,11 +494,15 @@ class Packages
 					 * Don't need to subtract the package from the user - this happens after checkout. 
 					 */
 					if (sizeof($maybe_packages) > 0) {
+						write_log('package detected, applying price discount');
 						$price = $item['data']->regular_price;
 						$cart->add_fee('Prepaid Package Applied', -$price);
+					} else {
+						write_log('no package was found, not applying discount');
 					}
 				}
 			}
+			write_log('finished applying packages discount at checkout for user ' . $user_id);
 		}
 	}
 

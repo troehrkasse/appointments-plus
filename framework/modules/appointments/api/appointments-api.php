@@ -82,8 +82,8 @@ class Appointments_API extends WP_REST_Controller{
                 break;
             default:
                 $response = 'no implementation for that event exists here.';
-                error_log('An event was received from ScheduleOnce but no implementation exists:');
-                error_log($params);
+                write_log('An event was received from ScheduleOnce but no implementation exists:');
+                write_log($params);
         }
         return new WP_REST_Response($response, 200);
     }
@@ -92,6 +92,8 @@ class Appointments_API extends WP_REST_Controller{
      * Updates the time of an appointment based on event data.
      */
     public function handle_booking_rescheduled_event($event) {
+        write_log('ScheduleOnce rescheduled event received');
+        write_log($event);
         $external_id = $event['id']; 
         $maybe_appointment = get_posts([
             'post_type'     =>  'appointment',
@@ -110,11 +112,13 @@ class Appointments_API extends WP_REST_Controller{
             $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
             $appointment_data['date_and_time'] = $event['data']['starting_time'];
             update_post_meta($appointment_id, '_appointment_data', $appointment_data);
+            write_log('booking reschedule event for event ID ' . $external_id . ' handled! Updated Appointment ID of ' . $appointment_id . 'with this data:');
+            write_log($appointment_data);
             return true;
         }
 
-        error_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
-        error_log($event);
+        write_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
+        write_log($event);
 
         return false;
     }
@@ -125,15 +129,23 @@ class Appointments_API extends WP_REST_Controller{
      * Adds the appropriate product to the Woocommerce cart. ScheduleOnce will redirect the user to the checkout page. 
      */
     private function handle_booking_scheduled_event($event) {
+        write_log('ScheduleOnce scheduled event received');
+        write_log($event);
         // Identifier used to find the corresponding Woocommerce product
         $identifier = $event['data']['event_type']['name'];
 
         // User email, to see if they are registered already
         $email = $event['data']['form_submission']['email'];
         $maybeUser = get_user_by('email', $email);
+        
+        write_log('attempting to find user for email ' . $email);
+        write_log($maybeUser);
 
         // Corresponding Woocommerce product 
         $product = get_page_by_title($identifier, OBJECT, 'product');
+
+        write_log('attempting to find product for ' . $identifier);
+        write_log($product->id);
         /**
          * Appointment data that will be saved as meta on the new post. 
          */
@@ -166,11 +178,17 @@ class Appointments_API extends WP_REST_Controller{
             'meta_input'        =>  $meta,
             'post_type'         =>  'appointment'
         ];
+
+        write_log('built args for new appointment is: ');
+        write_log($args);
+
         if ($maybeUser) {
             $args['post_author'] = $maybeUser->ID;
         }
         
         $new_appointment = wp_insert_post($args);
+
+        write_log('new appointment created: ' . $new_appointment);
         return $new_appointment;
     }
 
@@ -180,7 +198,11 @@ class Appointments_API extends WP_REST_Controller{
     }
 
     /* Delete an appointment using event data from ScheduleOnce */
+    // TODO un-consume package when this happens! 
     private function handle_booking_canceled_event($event) {
+        write_log('ScheduleOnce booking canceled event received: ');
+        write_log($event);
+
         $external_id = $event['id']; 
         $maybe_appointment = get_posts([
             'post_type'     =>  'appointment',
@@ -194,20 +216,23 @@ class Appointments_API extends WP_REST_Controller{
             ]
         ]);
 
+        write_log('looking for appointment with external ID of ' . $external_id);
+
         if (sizeof($maybe_appointment) > 0) {
             $appointment_id = $maybe_appointment[0]->ID;
             $deleted = wp_delete_post($appointment_id, true);
             if ($deleted !== false) {
+                write_log('deleted appointment with ID of ' . $appointment_id);
                 return true;
             } else {
-                error_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
-                error_log($event);
+                write_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
+                write_log($event);
                 return false;
             }
         }
 
-        error_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
-        error_log($event);
+        write_log('Could not find local appointment for event ' . $external_id . ', proceeding to dump event received');
+        write_log($event);
 
         return false;
     }

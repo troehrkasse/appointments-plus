@@ -308,9 +308,9 @@ class Appointments
 				</tr>';
             }
             $html = $html . '</table>
-                <p>You can book a new appointment <a href="' . get_site_url() . '/massage-appointments">here</a>.</p>';
+                <p>You can book a new appointment <a href="' . get_site_url() . '/booking">here</a>.</p>';
         } else {
-            $html = $html . '<p>No appointments found. <a href="' . get_site_url() . '/massage-appointments">Book one now!</a></p>';
+            $html = $html . '<p>No appointments found. <a href="' . get_site_url() . '/booking">Book one now!</a></p>';
         }
 		echo $html;
     }
@@ -354,7 +354,7 @@ class Appointments
                          */
                         $maybe_packages = $this->get_packages_for_user($user_id, $product_id);
                         if ($maybe_packages) {
-                            $consumed = $this->consume_package_slot($maybe_packages);
+                            $consumed = $this->consume_package_slot($maybe_packages, $order_id, $user_id, $product_id);
                             if ($consumed) {
                                 update_post_meta($appointment_id, '_payment_status', 'paid with package');
                             } else {
@@ -378,7 +378,7 @@ class Appointments
                             // Check for package for this user
                             $maybe_packages = $this->get_packages_for_user($user_id, $product_id);
                             if ($maybe_packages) {
-                                $consumed = $this->consume_package_slot($maybe_packages);
+                                $consumed = $this->consume_package_slot($maybe_packages, $order_id, $user_id, $product_id);
                                 if ($consumed) {
                                     update_post_meta($appointment_id, '_payment_status', 'paid with package');
                                 } else {
@@ -401,7 +401,7 @@ class Appointments
                         ]); 
                     } else {
                         // Could not find the appointment!
-                        error_log('User ' . $user_id . ' scheduled an appointment but it failed to update in Wordpress. Order number ' . $order_id);
+                        write_log('User ' . $user_id . ' scheduled an appointment but it failed to update in Wordpress. Order number ' . $order_id);
                     }
                 }
             }
@@ -409,13 +409,16 @@ class Appointments
     }
 
     /* Apply packages and return whether or not a package slot was used */
-    private function consume_package_slot($maybe_packages) {
+    private function consume_package_slot($maybe_packages, $order_id, $user_id, $product_id) {
+        write_log('attempting to consume a package slot for user ' . $user_id . ' order ' . $order_id . ' product ' . $product_id);
+
         $consumed = false;
         foreach ($maybe_packages as $package) {
             $package_id = $package->ID;
             $remaining = intval(get_post_meta($package_id, '_package_quantity_remaining', true));
             if ($remaining > 0) {
                 $consumed = true;
+                write_log('consumed 1 slot from package ' . $package_id . ' for user ' . $user_id . ' order ' . $order_id . ' product ' . $product_id);
                 if ($remaining == 1) {
                     // Package consumed!
                     update_post_meta($package_id, '_package_quantity_remaining', 0);
@@ -424,9 +427,17 @@ class Appointments
                     // Subtract one from the remaining quantity
                     update_post_meta($package_id, '_package_quantity_remaining', $remaining - 1);
                 }
+                $package_records = get_post_meta($package_id, '_appointment_usage', true);
+                $package_records[] = [
+                    'order_id'      =>  $order_id,
+                    'user_id'       =>  $user_id,
+                    'product_id'    =>  $product_id
+                ];
+                update_post_meta($package_id, '_appointment_usage', $package_records);
                 break;
             }
         }
+        write_log('finished attempting to consume a package slot for user ' . $user_id . ' order ' . $order_id . ' product ' . $product_id);
         return $consumed;
     }
 

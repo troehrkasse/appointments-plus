@@ -21,15 +21,49 @@ class Packages_API extends WP_REST_Controller{
                 'permission_callback' => array( $this, 'add_package_to_user_permissions_check' )
             )
         ) );
+
+        register_rest_route( self::$NAMESPACE, '/modify', array(
+            array(
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => array( $this, 'modify_package' ),
+                'permission_callback' => array( $this, 'add_package_to_user_permissions_check' )
+            )
+        ) );
+    }
+
+    /**
+     * @param WP_REST_Request $request
+     * @return bool
+     */
+    public function modify_package(WP_REST_Request $request) {
+        write_log('Received request to modify a package from the admin panel: ');
+        write_log($request);
+
+        $package_id = (int) $request->get_param('package_id');
+        $quantity_remaining = (int) $request->get_param('quantity_remaining');
+
+        $updated = update_post_meta($package_id, '_package_quantity_remaining', $quantity_remaining);
+        if ($quantity_remaining > 0) {
+            update_post_meta($package_id, '_package_active', true);
+        } else {
+            update_post_meta($package_id, '_package_active', false);
+        }
+
+        if ($updated) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
      * @param WP_REST_Request $request
      * @return string
      *
-     * Import products to Woocommerce
      */
     public function add_package_to_user(WP_REST_Request $request){
+        write_log('Received request to add a new package to a user from the admin panel: ');
+        write_log($request);
         // Get params from request and post meta
         $user_id = $request->get_param('user_id');
         $user_name = get_userdata($user_id)->first_name . ' ' . get_userdata($user_id)->last_name;
@@ -61,9 +95,12 @@ class Packages_API extends WP_REST_Controller{
 
         $new_package = wp_insert_post($args);
         if ($new_package == 0) {
-            error_log('Package save failure for user ' . $user_id);
+            write_log('Package save failure for user ' . $user_id . 'with these args: ');
+            write_log($args);
             return false;
         } else {
+            write_log('package ' . $new_package . ' added to user ' . $user_id . ' with these args:');
+            write_log($args);
             return true;
         }
     }

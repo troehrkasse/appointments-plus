@@ -1,3 +1,4 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <div class="package-info" style="width: 40%; float: left;">
     <h3>Active Packages</h3>
         {% if current_packages %}
@@ -7,6 +8,7 @@
                     <th style="text-align: left;">Package Title</th>
                     <th style="text-align: left;">Quantity</th>
                     <th style="text-align: left;">Remaining</th> 
+                    <th style="text-align: left;">Modify</th>
                 </tr>
                     {% for package in current_packages %}
                         <tr>
@@ -14,6 +16,10 @@
                             <td>{{ package.title }}</td>
                             <td>{{ package.quantity }}</td>
                             <td>{{ package.remaining }}</td>
+                            <td>
+                                <input style="width: 9rem;" id="{{package.id}}-quantity-update" placeholder="Quantity remaining">
+                                <button onclick="modifyUserPackage({{package.id}})">Update</button>
+                            </td>
                         </tr>
                     {% endfor %}
             </table>
@@ -29,6 +35,7 @@
                     <th style="text-align: left;">Package Title</th>
                     <th style="text-align: left;">Quantity</th>
                     <th style="text-align: left;">Remaining</th> 
+                    <th style="text-align: left;">Modify</th>
                 </tr>
                     {% for package in previous_packages %}
                         <tr>
@@ -36,6 +43,10 @@
                             <td>{{ package.title }}</td>
                             <td>{{ package.quantity }}</td>
                             <td>{{ package.remaining }}</td>
+                            <td>
+                                <input style="width: 9rem;" id="{{package.id}}-quantity-update" placeholder="Quantity remaining">
+                                <button onclick="modifyUserPackage({{package.id}})">Update</button>
+                            </td>
                         </tr>
                     {% endfor %}
             </table>
@@ -45,7 +56,7 @@
 </div>
 <div class="package-modify" style="width: 45%; float: left; margin-left: 1rem; padding-left: 1rem; border-left: solid 1px lightgray;">
     <h3>Add a package to a user</h3>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
     <div class="package-add">
         <input list="users" id="user-select" placeholder="Select customer">
         <datalist id="users">
@@ -64,6 +75,6 @@
     </div>
     <hr>
     <div class="package-modify">
-        <h3>Package modification - coming soon!</h3>
+        <h3>Edit how many appointments are remaining in a package</h3>
     </div>
 </div>
