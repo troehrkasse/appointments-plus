@@ -443,9 +443,10 @@ class Appointments
 
     /* Get packages for a certain for a user by ID */
     private function get_packages_for_user($user_id, $product_id) {
+        write_log('looking up packages for user ' . $user_id . ' and product ' . $product_id);
         $maybe_packages = get_posts([
             'post_type'     =>  'package',
-            'post_author'   =>  $user_id,
+            'author'   =>  $user_id,
             'meta_query'    =>  [
                 [
                     'key'       =>  '_appointment_product_id',
@@ -459,6 +460,10 @@ class Appointments
         ]);
 
         if (sizeof($maybe_packages) > 0) {
+            foreach($maybe_packages as $p) {
+                write_log('package id of ' . $p->ID . ' added to the list');
+            }
+            write_log('finished looking up packages');
             return $maybe_packages;
         } else {
             return false;
