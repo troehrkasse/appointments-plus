@@ -535,12 +535,11 @@ class Appointments
             $message .= 'Standard prices are displayed on this booking form. If you have a prepaid package, it will automatically be 
             applied at checkout.';
         } else {
-            $message <div class=""></div>= 'Returning client? <a href="' . site_url() . '/my-account/">Log in</a> first for a faster checkout experience!
+            $message .= 'Returning client? <a href="' . site_url() . '/my-account/">Log in</a> first for a faster checkout experience!
             <br>
             If you are a new client, you can <a href="' . site_url() . '/my-account/">create an account</a> to receive a discount on 
             your first 60 or 90 minute massage.';
         }
-
         $message .= '</h3>';
         return $message;
     }
