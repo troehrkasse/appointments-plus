@@ -203,18 +203,19 @@ class Appointments
         $all_appointments = get_posts([
 			'post_type'		=>	'appointment',
 			'post_status'	=>	'publish',
-			'numberposts'	=>	-1
-		]);
+			'nopaging'	    =>	true
+        ]);
+        
         // Split into current (upcoming) and previous
         $current_appointments = [];
         $previous_appointments = [];
         foreach ($all_appointments as $appointment) {
             $appointment_id = $appointment->ID;
             $appointment_data = get_post_meta($appointment_id, '_appointment_data', true);
-            if ($appointment_data['status'] == 'Scheduled') {
-                $current_appointments[] = $this->extract_appointment_details_for_admin($appointment_id, $appointment_data);
-            } else {
+            if (time() - strtotime($appointment_data['date_and_time']) > 0) {
                 $previous_appointments[] = $this->extract_appointment_details_for_admin($appointment_id, $appointment_data);
+            } else {
+                $current_appointments[] = $this->extract_appointment_details_for_admin($appointment_id, $appointment_data);
             }
         }
 
@@ -283,7 +284,8 @@ class Appointments
             'author'        => $user,
             'post_type'     =>  'appointment',
             'orderby'       =>  'date',
-            'order'         =>  'ASC'
+            'order'         =>  'ASC',
+            'nopaging'      =>  true
             ]);
         $html = '<h3>Appointments</h3>';
         if (sizeof($appointments) > 0) {
@@ -296,7 +298,9 @@ class Appointments
             
             foreach ($appointments as $appointment) {
                 $appointment_data = get_post_meta($appointment->ID, '_appointment_data', true);
-                //!Kint::dump($appointment_data); die();
+                if (time() - strtotime($appointment_data['date_and_time']) > 0) {
+                    continue;
+                }
                 $type = $appointment->post_title;
                 $date_and_time = $appointment_data['date_and_time'];
                 $cancel_reschedule_link = $appointment_data['cancel_reschedule_link'];
