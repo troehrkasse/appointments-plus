@@ -313,6 +313,20 @@ class Packages
 
 		write_log('checking order ' . $order_id . ' for packages to add to ' . $user_id . ' ' . $user_name);
 
+		// First check for appointments that need to be deducted from the package
+		$appointments_to_deduct = 0;
+		foreach($line_items as $line_item) {
+			$product = wc_get_product($line_item->get_product_id());
+			$product_type = $product->get_type();
+			$product_id = $product->get_id();
+			if ($product_type == 'appointment') {
+				write_log('found appointment in order, subtracting from package');
+				$appointments_to_deduct = $appointments_to_deduct + 1;
+			}
+		}
+
+		
+
 
 		foreach ($line_items as $line_item) {
 			$product = wc_get_product($line_item->get_product_id());
@@ -329,7 +343,7 @@ class Packages
 					'_appointment_product_id'		=>	intval(get_post_meta($product_id, '_appointment_package_type', true)), // The Woocommerce appointment product that this is a bundle of
 					'_order_id'						=>	$order_id,
 					'_package_quantity'				=>	$quantity,
-					'_package_quantity_remaining'	=>	$quantity,
+					'_package_quantity_remaining'	=>	$quantity - $appointments_to_deduct,
 					'_package_active'				=>	true, // sets to false when used up
 					'_user_id'						=>	$user_id,
 					'_user_name'					=>	$user_name,
@@ -457,13 +471,27 @@ class Packages
         register_post_type($type, $args);
 	}
 
+	/**
+	 * Apply packages automatically when checking out
+	 */
 	public function apply_packages_at_checkout(WC_Cart $cart) {
 		$user_id = get_current_user_id();
 		
 
 		if ($user_id !== 0) {
 			write_log('starting to apply packages discount at checkout for user ' . $user_id);
-			$items = $cart->get_cart();
+			$items = $cart->get_cart(); 
+
+			$packages_in_cart = [];
+
+			// First check for new packages 
+			foreach ($items as $item) {
+				if ($item['data']->product_type == "appointment_package") {
+					$p_id = $item['product_id']; // Product ID of the package
+					$a_id = intval(get_post_meta($p_id, '_appointment_package_type', true)); // Product ID of the appointment the package is for
+					$packages_in_cart[] = $a_id;
+				}
+			}
 			foreach ($items as $item) {
 				if ($item['data']->product_type == "appointment") {
 					write_log('appointment detected in cart! Attempting to find matching packages for this item: ');
@@ -494,9 +522,18 @@ class Packages
 					 * Don't need to subtract the package from the user - this happens after checkout. 
 					 */
 					if (sizeof($maybe_packages) > 0) {
-						write_log('package detected, applying price discount');
+						write_log('package detected in user account, applying price discount');
 						$price = $item['data']->regular_price;
 						$cart->add_fee('Prepaid Package Applied', -$price);
+					} else if (sizeof($packages_in_cart) > 0) {
+						// Check to see if the appointment matches
+						foreach ($packages_in_cart as $p_in_cart) {
+							if ($p_in_cart == intval($item['product_id'])) {
+								write_log('package detected in cart, applying price discount');
+								$price = $item['data']->regular_price;
+								$cart->add_fee('Prepaid Package Applied', -$price);
+							}
+						}
 					} else {
 						write_log('no package was found, not applying discount');
 					}
