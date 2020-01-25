@@ -1,6 +1,13 @@
 # appointments-plus
 **A collection of feature enhancements for Woocommerce + Woocommerce Appointments Wordpress sites.**
 
+**Dev Environment Setup**
+
+* Clone the repository
+* CD into the repository
+* `npm install`
+* `composer install`
+
 *Work in Progress*
 
 This plugin is designed to integrate with Wordpress powered sites using both Woocommerce and Woocommerce Appointments.
@@ -14,7 +21,7 @@ Providing new feature enhancements such as:
 **Webhooks**
 
 *Webhooks registered with ScheduleOnce*
-`
+``
 {
   "object": "webhook",
   "id": "WHK-L7GEBZ0D4C",
@@ -25,4 +32,9 @@ Providing new feature enhancements such as:
   ],
   "creation_time": "2019-07-19T16:15:29.760Z"
 }
-`
+``
+
+
+**Deploying to Production**
+
+`rsync -avz -e 'ssh -p <port>' --eclude '.git' --exclude 'node_modules' . user@server:public_html/wp-content/plugs/appointments-plus/`
