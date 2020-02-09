@@ -94,7 +94,7 @@ class Appointments_API extends WP_REST_Controller{
     public function handle_booking_rescheduled_event($event) {
         write_log('ScheduleOnce rescheduled event received');
         write_log($event);
-        $external_id = $event['id']; 
+        $external_id = $event['data']['tracking_id']; 
         $maybe_appointment = get_posts([
             'post_type'     =>  'appointment',
             'post_status'   =>  'publish',
@@ -161,7 +161,7 @@ class Appointments_API extends WP_REST_Controller{
                 'order_id'                  =>  null,
                 'cancel_reschedule_link'    =>  $event['data']['cancel_reschedule_link']
             ],
-            '_appointment_id'               =>  $event['id'], // Unique identifier for ScheduleOnce system
+            '_appointment_id'               =>  $event['data']['tracking_id'], // Unique identifier for ScheduleOnce system
             '_appointment_identifier'       =>  $identifier, // Just the title of the event
             '_payment_status'                =>  'unpaid', // unpaid or paid or paid with package
             '_customer_email'               =>  $email,
@@ -203,7 +203,7 @@ class Appointments_API extends WP_REST_Controller{
         write_log('ScheduleOnce booking canceled event received: ');
         write_log($event);
 
-        $external_id = $event['id']; 
+        $external_id = $event['data']['tracking_id']; 
         $maybe_appointment = get_posts([
             'post_type'     =>  'appointment',
             'post_status'   =>  'publish',
