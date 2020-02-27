@@ -69,7 +69,7 @@ class Appointments_API extends WP_REST_Controller{
                 $response = $this->handle_booking_rescheduled_event($params);
                 break;
             case 'booking.canceled_then_rescheduled':
-                $response = $this->handle_booking_canceled_then_rescheduled_event($params);
+                $response = $this->handle_booking_rescheduled_event($params);
                 break;
             case 'booking.canceled':
                 $response = $this->handle_booking_canceled_event($params);
@@ -193,7 +193,7 @@ class Appointments_API extends WP_REST_Controller{
     }
 
     /* Update an appointment using event data from ScheduleOnce. May be able to combine with the above function */
-    private function handle_booking_canceled_then_scheduled_event($event) {
+    private function handle_booking_canceled_then_rescheduled_event($event) {
         return 'so far so good';
     }
 
