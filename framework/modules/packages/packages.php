@@ -564,50 +564,51 @@ class Packages
 
     protected function init()
     {
+		// Dismantle (many items below)
         add_filter('timber_context', array(&$this, 'add_to_timber_context'), 60);
-        add_action('rest_api_init', array(&$this, 'bootstrap_api'), 60);
-		add_action('admin_enqueue_scripts', array(&$this, 'wp_admin_enqueue_scripts'), 60);
+        // add_action('rest_api_init', array(&$this, 'bootstrap_api'), 60);
+		// add_action('admin_enqueue_scripts', array(&$this, 'wp_admin_enqueue_scripts'), 60);
 		
 		/* 
 		 * Add new product type Appointment Package to Woocommerce. 
 		 * New tabs, display and save options
 		 */
-		add_filter( 'woocommerce_product_data_tabs', array(&$this, 'appointment_package_tab') );
-		add_filter( 'product_type_selector', array(&$this, 'add_appointment_package_type') );
-		add_action( 'woocommerce_product_data_panels', array(&$this, 'appointment_package_options_product_tab_content') );
+		// add_filter( 'woocommerce_product_data_tabs', array(&$this, 'appointment_package_tab') );
+		// add_filter( 'product_type_selector', array(&$this, 'add_appointment_package_type') );
+		// add_action( 'woocommerce_product_data_panels', array(&$this, 'appointment_package_options_product_tab_content') );
 		if (is_admin()) {
-			add_filter( 'woocommerce_product_tabs', array(&$this, 'appointment_package_edit_product_tabs'), 98 );
+			// add_filter( 'woocommerce_product_tabs', array(&$this, 'appointment_package_edit_product_tabs'), 98 );
 		}
-		add_action( 'admin_footer', array(&$this, 'appointment_package_custom_js') );
-		add_action( 'woocommerce_process_product_meta', array(&$this, 'save_appointment_package_options_field') );
+		// add_action( 'admin_footer', array(&$this, 'appointment_package_custom_js') );
+		// add_action( 'woocommerce_process_product_meta', array(&$this, 'save_appointment_package_options_field') );
 
 		/* Add custom Admin menu to Wordpress */
-		add_action( 'admin_menu', array(&$this, 'register_appointment_package_admin_menu'), 10);
+		// add_action( 'admin_menu', array(&$this, 'register_appointment_package_admin_menu'), 10);
 
 		/* Show add to cart button on appointment package pages */
 		add_action( 'woocommerce_appointment_package_add_to_cart', array(&$this, 'appointment_package_add_to_cart_button') );
 
 		/* Hook into Woocommerce post checkout to apply packages to user account */
-		add_action('woocommerce_thankyou', array(&$this, 'add_package_to_user'), 10, 1);
+		// add_action('woocommerce_thankyou', array(&$this, 'add_package_to_user'), 10, 1);
 
 		/* Add the Package custom post type to Wordpress */
-        add_action('init', array(&$this, 'register_package_post_type'));
+        // add_action('init', array(&$this, 'register_package_post_type'));
 
 		/* Add Packages page to Woocommerce account page */
-		add_filter( 'woocommerce_account_menu_items', array(&$this, 'packages_menu_items'), 10, 1 );
-		add_action( 'init', array(&$this, 'add_packages_endpoint') );
-		add_action( 'woocommerce_account_packages_endpoint', array(&$this, 'packages_endpoint_content') );
+		// add_filter( 'woocommerce_account_menu_items', array(&$this, 'packages_menu_items'), 10, 1 );
+		// add_action( 'init', array(&$this, 'add_packages_endpoint') );
+		// add_action( 'woocommerce_account_packages_endpoint', array(&$this, 'packages_endpoint_content') );
 
 		/* Apply packages at checkout */
-		add_filter ('woocommerce_cart_calculate_fees', array(&$this, 'apply_packages_at_checkout') , 10, 3 );
+		// add_filter ('woocommerce_cart_calculate_fees', array(&$this, 'apply_packages_at_checkout') , 10, 3 );
 
 		/* Change the text of the Place Order button */
 		add_filter('woocommerce_order_button_text', array(&$this, 'change_place_order_button_text'));
 
 		/* Disable the order email if the customer used a package and the price is free */
-		add_filter('woocommerce_email_recipient_customer_completed_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
-		add_filter('woocommerce_email_recipient_customer_processing_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
-		add_filter('woocommerce_email_recipient_customer_new_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
+		// add_filter('woocommerce_email_recipient_customer_completed_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
+		// add_filter('woocommerce_email_recipient_customer_processing_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
+		// add_filter('woocommerce_email_recipient_customer_new_order', array(&$this, 'disable_new_order_email_for_packages'), 10, 2);
     }
 }
 Packages::get_instance();

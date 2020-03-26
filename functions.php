@@ -1,6 +1,7 @@
 <?php
 /* Reorder and rename Woocommerce account endpoints */
-add_filter( 'woocommerce_account_menu_items' , 'customize_woocommerce_account_menu_items' );
+// Dismantle
+// add_filter( 'woocommerce_account_menu_items' , 'customize_woocommerce_account_menu_items' );
 function customize_woocommerce_account_menu_items() {
         $menuOrder= array(
             'dashboard'         =>  __('Dashboard', 'woocommerce'),

@@ -81,8 +81,9 @@ class Appointments
     public function wp_admin_enqueue_scripts()
     {
         // add admin required scripts here 
-		wp_register_script('appointments-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/appointments-admin.js", array(), APPOINTMENTS_VER, false);
-		wp_enqueue_script('appointments-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/appointments-admin.js");
+        // Dismantle
+		// wp_register_script('appointments-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/appointments-admin.js", array(), APPOINTMENTS_VER, false);
+		// wp_enqueue_script('appointments-admin', trailingslashit(APPOINTMENTS_URL) . "assets/js/appointments-admin.js");
     }
 
     /**
@@ -559,36 +560,39 @@ class Appointments
 
     protected function init()
     {
+        // Dismantle (commented out things below)
         add_filter('timber_context', array(&$this, 'add_to_timber_context'), 60);
-        add_action('rest_api_init', array(&$this, 'bootstrap_api'), 60);
-		add_action('admin_enqueue_scripts', array(&$this, 'wp_admin_enqueue_scripts'), 60);
+        // add_action('rest_api_init', array(&$this, 'bootstrap_api'), 60);
+		// add_action('admin_enqueue_scripts', array(&$this, 'wp_admin_enqueue_scripts'), 60);
 		
 		/* 
 		 * Add new product type Appointment to Woocommerce. 
 		 * New tabs, display and save options
 		 */
-		add_filter( 'woocommerce_product_data_tabs', array(&$this, 'appointment_tab') );
-		add_filter( 'product_type_selector', array(&$this, 'add_appointment_type') );
-		add_action( 'woocommerce_product_data_panels', array(&$this, 'appointment_options_product_tab_content') );
+		// add_filter( 'woocommerce_product_data_tabs', array(&$this, 'appointment_tab') );
+		// add_filter( 'product_type_selector', array(&$this, 'add_appointment_type') );
+        // 
+        add_action( 'woocommerce_product_data_panels', array(&$this, 'appointment_options_product_tab_content') );
 		if (is_admin()) {
+            return;
 			add_filter( 'woocommerce_product_tabs', array(&$this, 'appointment_edit_product_tabs'), 98 );
         }
-        add_action( 'admin_footer', array(&$this, 'appointment_custom_js') );
-		add_action( 'woocommerce_process_product_meta', array(&$this, 'save_appointment_options_field') );
+        // add_action( 'admin_footer', array(&$this, 'appointment_custom_js') );
+		// add_action( 'woocommerce_process_product_meta', array(&$this, 'save_appointment_options_field') );
 
 		/* Add custom Admin menu to Wordpress */
-		add_action( 'admin_menu', array(&$this, 'register_appointment_admin_menu'), 10);
+		// add_action( 'admin_menu', array(&$this, 'register_appointment_admin_menu'), 10);
 
 		/* Add Appointments page to Woocommerce account page */
-		add_filter( 'woocommerce_account_menu_items', array(&$this, 'appointments_menu_items'), 10, 1 );
-		add_action( 'init', array(&$this, 'add_appointments_endpoint') );
-        add_action( 'woocommerce_account_appointments_endpoint', array(&$this, 'appointments_endpoint_content') );
+		// add_filter( 'woocommerce_account_menu_items', array(&$this, 'appointments_menu_items'), 10, 1 );
+		// add_action( 'init', array(&$this, 'add_appointments_endpoint') );
+        // add_action( 'woocommerce_account_appointments_endpoint', array(&$this, 'appointments_endpoint_content') );
         
         /* Add the Appointment custom post type to Wordpress */
-        add_action('init', array(&$this, 'register_appointment_post_type'));
+        // add_action('init', array(&$this, 'register_appointment_post_type'));
 
         /* Hook into Woocommerce post checkout to update appointment status */
-        add_action('woocommerce_thankyou', array(&$this, 'post_checkout_update_appointment'), 10, 1);
+        // add_action('woocommerce_thankyou', array(&$this, 'post_checkout_update_appointment'), 10, 1);
         
         /* Display a customized message for customers or guests on the booking pages */
         add_shortcode( 'booking_form_message', array(&$this, 'generate_booking_form_message'));
